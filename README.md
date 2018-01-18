@@ -30,5 +30,11 @@
 
 整个流程编写下来，都没有用到[redux](http://cn.redux.js.org/)以及与redux相关的，因为本人【李松】现在对[react-native](https://facebook.github.io/react-native)还处在学习阶段，对[redux](http://cn.redux.js.org/)还不熟，所以就没用它，[redux](http://cn.redux.js.org/)官方有这样一句话：“如果你不知道redux是什么？那就没必要用它”。
 
+#### 警示
+
+请勿将本代码用于商业有关方面，否则必追究！
+
+ 
+
 
 
