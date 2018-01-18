@@ -1,4 +1,4 @@
-## Welcome to GitHub Pages  lisong
+## Welcome to GitHub Pages  李松的描述
 
 You can use the [editor on GitHub](https://github.com/qqwq3/blstory-react-native-/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
 
