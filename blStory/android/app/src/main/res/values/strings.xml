@@ -1,0 +1,5 @@
+<resources>
+    <string moduleConfig="true" name="reactNativeCodePush_androidDeploymentKey">1F0jUVfj2HMixNWUDvQETW3LA4b90a807393-7289-4bba-ba4a-430561def6ac</string>
+    <string name="app_name">白鹿小说</string>
+    <!--<string name="android_auto_update_download_progress">正在下载:%1$d%%</string>-->
+</resources>
