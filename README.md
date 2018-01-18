@@ -22,6 +22,13 @@
 15. RN路由react-navigation [react-navigation](https://github.com/react-navigation/react-navigation)
 16. 最好用的banner手势滑动 [react-native-swiper](https://github.com/leecade/react-native-swiper)
 
+#### 提示
+
+编写的代码都放在 blStory -> content 里面了，代码可下载，希望能帮助到小伙伴们~
+
+#### 自我反馈
+
+整个流程编写下来，都没有用到[redux](http://cn.redux.js.org/)以及与redux相关的，因为本人【李松】现在对[react-native](https://facebook.github.io/react-native)还处在学习阶段，对[redux](http://cn.redux.js.org/)还不熟，所以就没用它，[redux](http://cn.redux.js.org/)官方有这样一句话：“如果你不知道redux是什么？那就没必要用它”。
 
 
 
