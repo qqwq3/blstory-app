@@ -1,37 +1,40 @@
-## Welcome to GitHub Pages  李松的描述
+## 白鹿小说
 
-You can use the [editor on GitHub](https://github.com/qqwq3/blstory-react-native-/edit/master/README.md) to maintain and preview the content for your website in Markdown files.
+- APP(react-native)  (android + ios)
+- react-native  version  0.50.3
 
-Whenever you commit to this repository, GitHub Pages will run [Jekyll](https://jekyllrb.com/) to rebuild the pages in your site, from the content in your Markdown files.
+#### 用到的第三方库
 
-### Markdown
+1. javascript工具 [loadsh](http://www.css88.com/doc/lodash/)
+2. 用于验证对象的类型 [prop-types](http://www.hangge.com/blog/cache/detail_1743.html)
+3. 更新app包版本 [react-native-appupdate](https://www.npmjs.com/package/react-native-appupdate) 
+4. 基于RN封装过的复选框 [react-native-check-box](https://www.npmjs.com/package/react-native-checkbox)
+5. 实现js代码的热更新 [react-native-code-push](https://github.com/Microsoft/react-native-code-push) 
+6. 获取设备信息 [react-native-device-info](https://www.npmjs.com/package/rn-device-info)
+7. 实现抽屉效果 [react-native-drawer](https://www.npmjs.com/package/react-native-drawer) 
+8. 基本的信息提示 [react-native-easy-toast](http://www.qingpingshan.com/rjbc/az/135457.html)
+9. RN背景颜色实现渐变效果 [react-native-linear-gradient](https://github.com/react-native-community/react-native-linear-gradient)
+10. 弹出层 [react-native-popup-dialog](https://www.npmjs.com/package/react-native-popup-dialog) 
+11. 进度条 [react-native-progress](https://www.npmjs.com/package/react-native-progress)
+12. Tab 内容可滑动的 [react-native-scrollable-tab-view](https://github.com/skv-headless/react-native-scrollable-tab-view)
+13. 本地储存 [react-native-storage](https://www.npmjs.com/package/react-native-storage)
+14. 微信组件 [react-native-wechat](https://www.jianshu.com/p/3f424cccb888)
+15. RN路由react-navigation [react-navigation](https://github.com/react-navigation/react-navigation)
+16. 最好用的banner手势滑动 [react-native-swiper](https://github.com/leecade/react-native-swiper)
 
-Markdown is a lightweight and easy-to-use syntax for styling your writing. It includes conventions for
+#### 提示
 
-```markdown
-Syntax highlighted code block
+编写的代码都放在 blStory -> content 里面了，代码可下载，希望能帮助到小伙伴们~
 
-# Header 1
-## Header 2
-### Header 3
+#### 自我反馈
 
-- Bulleted
-- List
+整个流程编写下来，都没有用到[redux](http://cn.redux.js.org/)以及与redux相关的，因为本人现在对[react-native](https://facebook.github.io/react-native)还处在学习阶段，对[redux](http://cn.redux.js.org/)还不熟，所以就没用它，[redux](http://cn.redux.js.org/)官方有这样一句话：“如果你不知道redux是什么？那就没必要用它”。
 
-1. Numbered
-2. List
+#### 警示
 
-**Bold** and _Italic_ and `Code` text
+请勿将本代码用于商业有关方面，否则必追究！
 
-[Link](url) and ![Image](src)
-```
+ 
 
-For more details see [GitHub Flavored Markdown](https://guides.github.com/features/mastering-markdown/).
 
-### Jekyll Themes
 
-Your Pages site will use the layout and styles from the Jekyll theme you have selected in your [repository settings](https://github.com/qqwq3/blstory-react-native-/settings). The name of this theme is saved in the Jekyll `_config.yml` configuration file.
-
-### Support or Contact
-
-Having trouble with Pages? Check out our [documentation](https://help.github.com/categories/github-pages-basics/) or [contact support](https://github.com/contact) and we’ll help you sort it out.
