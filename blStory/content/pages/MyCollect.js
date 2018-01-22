@@ -23,7 +23,7 @@ import { Devices,Api } from "../common/Api";
 import Fecth from '../common/Fecth';
 import RequestImage from '../common/RequestImage';
 import Loading from '../common/Loading';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class MyCollect extends Component{
     constructor(props){
@@ -49,7 +49,7 @@ class MyCollect extends Component{
         this.bookIds = '';
         this.indexArr = [];
     }
-    componentWillMount() {
+    componentWillMount() {;
         this._requestData(1);
     }
     render(){
@@ -115,37 +115,45 @@ class MyCollect extends Component{
             params = '?limit=15' + '&page=' + page,
             headers = {'Authorized-Key' : this.authorized_key,"SESSION-ID": launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-            if(res.code === 0){
-                let items = this.cacheReults.items.slice();
-                items = items.concat(res.data.records);
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    let items = this.cacheReults.items.slice();
+                    items = items.concat(res.data.records);
 
-                this.cacheReults.items = items;
-                this.cacheReults.total = res.data.total_records;
-                this.cacheReults.nextPage += 1;
+                    this.cacheReults.items = items;
+                    this.cacheReults.total = res.data.total_records;
+                    this.cacheReults.nextPage += 1;
+                    this.setState({
+                        data: this.cacheReults.items,
+                        isLoadMore: false,
+                        isLoading: false,
+                        itemStatus: true,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoadMore: false,
+                        isLoading: false,
+                        itemStatus: true,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
                 this.setState({
-                    data: this.cacheReults.items,
                     isLoadMore: false,
                     isLoading: false,
                     itemStatus: true,
                 });
-            }
 
-            if(res.code === 404){
-                this.setState({
-                    isLoadMore: false,
-                    isLoading: false,
-                    itemStatus: false,
-                });
-            }
-        },err => {
-            this.setState({
-                isLoadMore: false,
-                isLoading: false,
-                itemStatus: false,
-            });
-            errorShow(err);
-        },headers);
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _renderItem({item,index}){
         return (
@@ -218,13 +226,22 @@ class MyCollect extends Component{
         this.cacheReults.nextPage = 1;
         this.cacheReults.total = 0;
 
-        Fecth.post(url,params,headers,(res) => {
-            if(res.code === 0){
-                this.refs.toast.show('删除成功！',600);
-                this._requestData(1);
-            }
-        },(err) => {
-            errorShow(err);
+        networkCheck(() => {
+            Fecth.post(url,params,headers,(res) => {
+                if(res.code === 0){
+                    this.refs.toast.show('删除成功！',600);
+                    this._requestData(1);
+                }
+                else{
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },(err) => {
+                errorShow(err);
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _bookId(book_id,value){

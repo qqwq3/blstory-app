@@ -14,7 +14,6 @@ import {
     Platform,
     Alert,
     Button,
-    StatusBar,
 } from 'react-native';
 import * as wechat from 'react-native-wechat';
 import Toast from 'react-native-easy-toast';
@@ -22,8 +21,7 @@ import DeviceInfo from 'react-native-device-info';
 import { Devices,Api } from "../common/Api";
 import Fecth from '../common/Fecth';
 import LoginSelect from './LoginSelect';
-import NetWork from './NetWork';
-import { errorShow,networkCheck } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class Login extends Component{
     constructor(props){
@@ -37,61 +35,43 @@ class Login extends Component{
             hash_id: '',
             id: '',
             name: '',
-            isConnected: true,
             appVersion: DeviceInfo.getVersion(),
         }
     }
     componentWillMount(){
-        // 设置状态栏背景颜色
-        StatusBar.setBackgroundColor('#E6E2DE');
-
         this._getScopeAndState();
-    }
-    componentWillUnmount() {
-        // 还原状态栏背景颜色
-        StatusBar.setBackgroundColor('#ffffff');
     }
     render(){
         const _left = this.state.left;
 
         return (
             <View style={styles.content}>
-                {
-                    this.state.isConnected ? (
-                        <View style={{flex:1}}>
-                            <View style={styles.loginTitle}>
-                                <Text style={[styles.comColor,styles.loginTitleText]}>白鹿</Text>
-                            </View>
-                            <View style={styles.loginMethod}>
-                                <View style={styles.loginMethodPropmpt}>
-                                    <View style={[styles.loginMPLine,styles.comBackground]}/>
-                                    <View onLayout={this._layout} style={[styles.loginMPView,{left: _left}]}>
-                                        <Text style={[styles.loginMPText,styles.comColor]}>请选择以下方式快捷方式登录</Text>
-                                    </View>
-                                </View>
-                                <LoginSelect
-                                    scope={this.state.scope}
-                                    state={this.state.state}
-                                    navigation={this.props.navigation}
-                                    toast={this.refs.toast}
-                                    connect={(isConnected) =>this._connect(isConnected)}
-                                />
-                                <View style={[styles.loginRulePrompt]}>
-                                    <View style={{paddingTop:10}}>
-                                        <Text style={[styles.loginRulePrompText,styles.comColor]}>
-                                            当前版本：{this.state.appVersion}
-                                        </Text>
-                                    </View>
-                                </View>
+                <View style={{flex:1}}>
+                    <View style={styles.loginTitle}>
+                        <Text style={[styles.comColor,styles.loginTitleText]}>白鹿</Text>
+                    </View>
+                    <View style={styles.loginMethod}>
+                        <View style={styles.loginMethodPropmpt}>
+                            <View style={[styles.loginMPLine,styles.comBackground]}/>
+                            <View onLayout={this._layout} style={[styles.loginMPView,{left: _left}]}>
+                                <Text style={[styles.loginMPText,styles.comColor]}>请选择以下方式快捷方式登录</Text>
                             </View>
                         </View>
-                    ) : (
-                        <NetWork
-                            goBack={() => this._goBack()}
-                            refreshNetwork={() => this._refreshNetwork()}
+                        <LoginSelect
+                            scope={this.state.scope}
+                            state={this.state.state}
+                            navigation={this.props.navigation}
+                            toast={this.refs.toast}
                         />
-                    )
-                }
+                        <View style={[styles.loginRulePrompt]}>
+                            <View style={{paddingTop:10}}>
+                                <Text style={[styles.loginRulePrompText,styles.comColor]}>
+                                    当前版本：{this.state.appVersion}
+                                </Text>
+                            </View>
+                        </View>
+                    </View>
+                </View>
                 <Toast
                     ref="toast"
                     position={'center'}
@@ -104,20 +84,6 @@ class Login extends Component{
             </View>
         );
     }
-    _goBack(){
-        this.setState({isConnected: true});
-    }
-    _refreshNetwork(){
-        networkCheck((isConnected) => {
-            this._getScopeAndState();
-            this.setState({isConnected:isConnected});
-        },(isConnected) => {
-            this.setState({isConnected:isConnected});
-        });
-    }
-    _connect(isConnected){
-        this.setState({isConnected:isConnected});
-    }
     _layout = (e) =>{
         const _width = e.nativeEvent.layout.width;
         this.setState({
@@ -129,6 +95,7 @@ class Login extends Component{
             params = '',
             headers = {'SESSION-ID': ''};//launchConfig.sessionID};
 
+        networkCheck(() => {
             Fecth.get(url,params,(res) => {
                 if(res.code === 0){
                     this.setState({
@@ -138,9 +105,19 @@ class Login extends Component{
                     });
                     this._wechatRegisterApp(res.data.appid);
                 }
+                else{
+                    console.log('login',res);
+
+                    loginTimeout(_ => {
+                        this._getScopeAndState();
+                    });
+                }
             },(err) => {
                 errorShow(err);
             },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _wechatRegisterApp(appid){
         try{

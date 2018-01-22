@@ -20,6 +20,7 @@ import BookDetailCatalog from './BookDetailCatalog';
 import Reader from './Reader';
 import BookDetailCommentsMore from './BookDetailCommentsMore';
 import Spread from './Spread';
+import NetWork from './NetWork';
 
 // 路由的基本配置
 const RouterConfig = {
@@ -112,6 +113,20 @@ const RouterConfig = {
                     color={'#ffffff'}
                     bottomBorder={true}
                     borderBottomColor={'#ffffff'}
+                />
+            ),
+        })
+    },
+    // 无网络
+    NetWork: {
+        screen: NetWork,
+        navigationOptions: ({navigation}) => ({
+            header: (
+                <HeaderReturn
+                    title={'温馨提示'}
+                    onPress={() => navigation.goBack()}
+                    backgroundColor={'#F1F1F1'}
+                    bottomBorder={true}
                 />
             ),
         })

@@ -10,7 +10,7 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     Image,
-    FlatList
+    FlatList,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
 import RankingTabBar from './RankingTabBar';
@@ -18,7 +18,7 @@ import { Api,Devices } from "../common/Api";
 import RequestImage from '../common/RequestImage';
 import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class RankingList extends Component{
     constructor(props){
@@ -80,14 +80,29 @@ class RankingList extends Component{
             params = "?sort_by=" + args,
             headers = {'SESSION-ID': launchConfig.sessionID};
 
-        Fecth.get(url,params,(res) => {
-            res.code === 0 && this.setState({
-                listData: res.data,
-                isLoading: false,
-            });
-        },(err) => {
-            errorShow(err);
-        },headers);
+        networkCheck(() => {
+            Fecth.get(url,params,(res) => {
+                if(res.code === 0){
+                    this.setState({
+                        listData: res.data,
+                        isLoading: false,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoading: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },(err) => {
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _renderItem = ({item,index}) => {
         let obj = item.obj,
@@ -137,10 +152,14 @@ class RankingList extends Component{
     _openDetails(hex_id,id){
         let authorized_key = this.props.navigation.state.params.user.authorized_key;
 
-        this.props.navigation.navigate("BookDetail",{
-            hex_id: hex_id,
-            id: id,
-            authorized_key: authorized_key,
+        networkCheck(() => {
+            this.props.navigation.navigate("BookDetail",{
+                hex_id: hex_id,
+                id: id,
+                authorized_key: authorized_key,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
 }

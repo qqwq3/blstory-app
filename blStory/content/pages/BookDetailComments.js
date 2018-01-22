@@ -15,7 +15,7 @@ import RequestImage from '../common/RequestImage';
 import DateUtil from '../common/DateUtil';
 import Fecth from '../common/Fecth';
 import PropTypes from 'prop-types';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class BookDetailComments extends Component{
     static propTypes = {
@@ -80,10 +80,21 @@ class BookDetailComments extends Component{
         this.props.newLikeCountArr(likeCountArr);
         this.props.newLikeStatus(likeStatus);
 
-        Fecth.post(url,params,headers,res => {
-            res.code === 0 && this.props.toast.show('点赞成功！',600);
-        },err => {
-            errorShow(err);
+        networkCheck(() => {
+            Fecth.post(url,params,headers,res => {
+                if(res.code === 0){
+                    this.props.toast.show('点赞成功！',600);
+                }
+                else{
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
+                errorShow(err);
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
 }

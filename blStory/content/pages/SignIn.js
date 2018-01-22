@@ -17,7 +17,7 @@ import Icon from '../common/Icon';
 import { Devices,Api } from "../common/Api";
 import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class SignIn extends Component{
     constructor(props){
@@ -46,26 +46,40 @@ class SignIn extends Component{
         let url = Api.common + Api.category.signInCheck,
             headers = {"Authorized-Key":authorized_key,"SESSION-ID": launchConfig.sessionID};
 
-        Fecth.get(url,'',res => {
-            if(res.code === 0){
-                if(res.data.singed === true){
+        networkCheck(() => {
+            Fecth.get(url,'',res => {
+                if(res.code === 0){
+                    if(res.data.singed === true){
+                        this.setState({
+                            isSignIn: true,
+                        });
+                    }
+
                     this.setState({
-                        isSignIn: true,
+                        showLoading:false,
+                        totalRewards: res.data.total_rewards,
+                        signInDays: res.data.cycle_days + 1,
                     });
                 }
+                else{
+                    this.setState({
+                        showLoading:false,
+                    });
 
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
                 this.setState({
                     showLoading:false,
-                    totalRewards: res.data.total_rewards,
-                    signInDays: res.data.cycle_days + 1,
                 });
-            }
-            else{
-                console.log(res);
-            }
-        },err => {
-            errorShow(err);
-        },headers);
+
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _signIn() {
         let authorized_key = this.props.navigation.state.params.authorized_key;
@@ -73,17 +87,34 @@ class SignIn extends Component{
             params = Fecth.dictToFormData({}),
             headers = {"Authorized-Key":authorized_key,"SESSION-ID": launchConfig.sessionID};
 
-        Fecth.post(url, params, headers, res => {
-            if(res.code === 0){
-                this.refs.toast.show(res.data.text,1000);
+        networkCheck(() => {
+            Fecth.post(url, params, headers, res => {
+                if(res.code === 0){
+                    this.refs.toast.show(res.data.text,1000);
+                    this.setState({
+                        signInDays: res.data.cycle_days + 1,
+                        totalRewards: res.data.total_rewards,
+                        isSignIn: true,
+                    });
+                }
+                else{
+                    this.setState({
+                        isSignIn: true,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
                 this.setState({
-                    signInDays: res.data.cycle_days + 1,
-                    totalRewards: res.data.total_rewards,
                     isSignIn: true,
                 });
-            }
-        },err => {
-            errorShow(err);
+
+                errorShow(err);
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _returnHome(){

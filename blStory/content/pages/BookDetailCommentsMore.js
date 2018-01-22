@@ -20,7 +20,7 @@ import { Api,Devices } from "../common/Api";
 import Fecth from '../common/Fecth';
 import RequestImage from '../common/RequestImage';
 import DateUtil from '../common/DateUtil';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class BookDetailCommentsMore extends Component{
     constructor(props){
@@ -53,42 +53,59 @@ class BookDetailCommentsMore extends Component{
         let params = "?book_id=" + this.book_id + '&limit=10' + '&page=' + page;
         let headers = {'SESSION-ID': launchConfig.sessionID};
 
-        Fecth.get(url,params,(res) => {
-            if(res.code === 0){
-                let items = this.cachedResults.items.slice();
-                let countArr = this.likeCountArr.slice();
-                let statusArr = this.likeStatus.slice();
+        networkCheck(() => {
+            Fecth.get(url,params,(res) => {
+                if(res.code === 0){
+                    let items = this.cachedResults.items.slice();
+                    let countArr = this.likeCountArr.slice();
+                    let statusArr = this.likeStatus.slice();
 
-                items = items.concat(res.data.records);
+                    items = items.concat(res.data.records);
 
-                res.data.records.map((item) => {
-                    countArr = countArr.concat(item.like_count);
-                    statusArr = statusArr.concat(false);
-                });
+                    res.data.records.map((item) => {
+                        countArr = countArr.concat(item.like_count);
+                        statusArr = statusArr.concat(false);
+                    });
 
-                this.likeCountArr = countArr;
-                this.likeStatus = statusArr;
-                this.cachedResults.items = items;
-                this.cachedResults.total = res.data.total_records;
-                this.cachedResults.nextPage += 1;
+                    this.likeCountArr = countArr;
+                    this.likeStatus = statusArr;
+                    this.cachedResults.items = items;
+                    this.cachedResults.total = res.data.total_records;
+                    this.cachedResults.nextPage += 1;
+                    this.setState({
+                        isLoading: false,
+                        isLoadMore: false,
+                        dataStatus: true,
+                        refreshing: false,
+                        likeCountArr: this.likeCountArr,
+                        likeStatus: this.likeStatus,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoading: false,
+                        isLoadMore: false,
+                        dataStatus: true,
+                        refreshing: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },(err) => {
                 this.setState({
                     isLoading: false,
                     isLoadMore: false,
                     dataStatus: true,
                     refreshing: false,
-                    likeCountArr: this.likeCountArr,
-                    likeStatus: this.likeStatus,
                 });
-            }
-        },(err) => {
-            this.setState({
-                isLoading: false,
-                isLoadMore: false,
-                dataStatus: false,
-                refreshing: false,
-            });
-            console.log(err)
-        },headers);
+
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _renderItem({item,index}){
         let o = item.data;
@@ -185,10 +202,21 @@ class BookDetailCommentsMore extends Component{
             likeStatus:likeStatus
         });
 
-        Fecth.post(url,params,headers,res => {
-            res.code === 0 && this.refs.toast.show('点赞成功！',600);
-        },err => {
-            errorShow(err);
+        networkCheck(() => {
+            Fecth.post(url,params,headers,res => {
+                if(res.code === 0){
+                    this.refs.toast.show('点赞成功！',600);
+                }
+                else{
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
+                errorShow(err);
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     render(){

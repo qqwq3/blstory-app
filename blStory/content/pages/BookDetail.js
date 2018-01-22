@@ -24,7 +24,7 @@ import DateUtil from '../common/DateUtil';
 import Fecth from '../common/Fecth';
 import BookDetailComments from './BookDetailComments';
 import Loading from '../common/Loading';
-import { errorShow,networkCheck } from '../common/Util';
+import { errorShow,networkCheck,loginTimeout } from '../common/Util';
 
 // 装饰点的颜色集合
 const dotColor = {
@@ -101,9 +101,6 @@ class BookDetail extends Component{
     }
     componentDidMount() {
         this.state.animation.setValue(this.state.MinHeight);
-    }
-    componentWillUnmount() {
-        this.timer && clearTimeout(this.timer);
     }
     render(){
         let obj = this.state.detailData,
@@ -209,6 +206,7 @@ class BookDetail extends Component{
                                             likeStatus={this.state.likeStatus !== [] && this.state.likeStatus}
                                             newLikeCountArr={this._newLikeCountArr.bind(this)}
                                             newLikeStatus={this._newLikeStatus.bind(this)}
+                                            navigation={this.props.navigation}
                                         />
                                         {
                                             this.state.total_records > 10 &&
@@ -254,15 +252,19 @@ class BookDetail extends Component{
                             style={{backgroundColor:'#000000'}}
                             textStyle={{fontSize:14,color:'#fff'}}
                         />
-                        <Loading opacity={1} show={this.state.isLoading} />
+                        <Loading opacity={0.60} show={this.state.isLoading} />
                     </View>
                 ) : <Text/>
         );
     }
     _viewMoreComments(){
-        this.props.navigation.navigate('BookDetailCommentsMore',{
-            book_id: this.state.id,
-            authorized_key: this.state.authorized_key,
+        networkCheck(() => {
+            this.props.navigation.navigate('BookDetailCommentsMore',{
+                book_id: this.state.id,
+                authorized_key: this.state.authorized_key,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _newLikeStatus(newLikeStatus){
@@ -278,69 +280,101 @@ class BookDetail extends Component{
                'Authorized-Key': this.state.authorized_key,
                'SESSION-ID': launchConfig.sessionID,
            };
+        const { navigate } = this.props.navigation;
 
-        Fecth.get(url,params,res => {
-            res.code === 0 ? this.setState({bookCaseExists: true}) : this.setState({bookCaseExists: false});
-        },err => {
-            errorShow(err);
-        },headers);
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    this.setState({bookCaseExists: true});
+                }
+            },err => {
+                errorShow(err);
+            },headers);
+        },() => {
+            navigate("NetWork");
+        });
     }
     _requestData(id,hex_id){
         let url_detail = Api.common + Api.category.details,
             url_similar = Api.common + Api.category.similar;
+        const { navigate } = this.props.navigation;
 
-        // 猜你喜欢
-        Fecth.get(url_similar,"?book_id="+id,(res) => {
-            res.code === 0 && this.setState({
-                similarData: res.data.records,
-                isLoading: false,
+        networkCheck(() => {
+            // 猜你喜欢
+            Fecth.get(url_similar,"?book_id="+id,(res) => {
+                if(res.code === 0){
+                    this.setState({
+                        similarData: res.data.records,
+                        isLoading: false,
+                    });
+                }
+                else{
+                    this.setState({isLoading: false});
+                }
+            },(err) => {
+                errorShow(err);
             });
-        },(err) => {
-            errorShow(err);
-        });
 
-        // 书籍详情
-        Fecth.get(url_detail,"?id=" + hex_id,(res) => {
-            res.code === 0 && this.setState({
-                detailData: res.data,
-                status: true,
-                isLoading: false,
+            // 书籍详情
+            Fecth.get(url_detail,"?id=" + hex_id,(res) => {
+                if(res.code === 0){
+                    this.setState({
+                        detailData: res.data,
+                        status: true,
+                        isLoading: false,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoading: false,
+                        status: true,
+                    });
+
+                    loginTimeout(_ => {
+                        navigate("Login");
+                    });
+                }
+            },(err) => {
+                errorShow(err);
             });
-        },(err) => {
-            errorShow(err);
+        },() => {
+            navigate("NetWork");
         });
     }
     _requestCommets(id){
         let url_comments = Api.common + Api.category.comments;
         let params = "?book_id=" + id + '&limit=10' + '&page=1';
         headers = {'SESSION-ID': launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
-        //书籍评论
-        Fecth.get(url_comments,params,(res) => {
-            if(res.code === 0){
-                res.data.records.map((item,index) => {
-                    this.likeCountArr.push(item.like_count);
-                    this.likeStatus.push(false);
-                });
+        networkCheck(() => {
+            //书籍评论
+            Fecth.get(url_comments,params,(res) => {
+                if(res.code === 0){
+                    res.data.records.map((item,index) => {
+                        this.likeCountArr.push(item.like_count);
+                        this.likeStatus.push(false);
+                    });
 
-                this.setState({
-                    commentsData: res.data.records,
-                    total_records: res.data.total_records,
-                    isLoading: false,
-                    likeCountArr: this.likeCountArr,
-                    likeStatus: this.likeStatus,
-                });
-            }
-
-            if(res.code === 404){
-                this.setState({
-                    commentsData: [],
-                    total_records: 0,
-                });
-            }
-        },(err) => {
-            errorShow(err);
-        },headers);
+                    this.setState({
+                        commentsData: res.data.records,
+                        total_records: res.data.total_records,
+                        isLoading: false,
+                        likeCountArr: this.likeCountArr,
+                        likeStatus: this.likeStatus,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoading: false,
+                    });
+                }
+            },(err) => {
+                errorShow(err);
+            },headers);
+        },() => {
+            navigate("NetWork");
+        });
     }
     _toggle(){
         this.setState({expanded: !this.state.expanded});
@@ -360,32 +394,44 @@ class BookDetail extends Component{
     _bookCatalog(hex_id,book_title){
         let authorized_key = this.state.authorized_key;
 
-        this.props.navigation.navigate('BookDetailCatalog',{
-            hex_id: hex_id,
-            authorized_key: authorized_key,
-            book_title: book_title,
+        networkCheck(() => {
+            this.props.navigation.navigate('BookDetailCatalog',{
+                hex_id: hex_id,
+                authorized_key: authorized_key,
+                book_title: book_title,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _readingImmediately(hex_id,book_title){
         let authorized_key = this.state.authorized_key;
 
-        this.props.navigation.navigate('Reader',{
-            hex_id: hex_id,
-            authorized_key: authorized_key,
-            readerStatus: 'direct',
-            book_title: book_title,
+        networkCheck(() => {
+            this.props.navigation.navigate('Reader',{
+                hex_id: hex_id,
+                authorized_key: authorized_key,
+                readerStatus: 'direct',
+                book_title: book_title,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _indirectReader(chapter_id,book_title){
         let hex_id = this.state.hex_id;
         let authorized_key = this.state.authorized_key;
 
-        this.props.navigation.navigate('Reader',{
-            chapter_id: chapter_id,
-            hex_id: hex_id,
-            authorized_key: authorized_key,
-            readerStatus: 'indirect',
-            book_title: book_title,
+        networkCheck(() => {
+            this.props.navigation.navigate('Reader',{
+                chapter_id: chapter_id,
+                hex_id: hex_id,
+                authorized_key: authorized_key,
+                readerStatus: 'indirect',
+                book_title: book_title,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _addCollection(book_id){
@@ -394,31 +440,37 @@ class BookDetail extends Component{
             params = {book_id:book_id},
             headers = {'Authorized-Key': authorized_key,"SESSION-ID": launchConfig.sessionID};
 
-        // post请求
-        Fecth.post(url,Fecth.dictToFormData(params),headers,(res) => {
-            if(res.code === 0){
-                if(res.data === 'add'){
-                    this.refs.toast.show('添加成功',600);
-                    this.setState({bookCaseExists: true});
+        networkCheck(() => {
+            // post请求
+            Fecth.post(url,Fecth.dictToFormData(params),headers,(res) => {
+                if(res.code === 0){
+                    if(res.data === 'add'){
+                        this.refs.toast.show('添加成功',600);
+                        this.setState({bookCaseExists: true});
+                    }
                 }
-            }
-            else if(res.code === 401){
-                this.refs.toast.show('登录超时',1000);
-                this.timer = setTimeout(() => {
-                    this.props.navigation.navigate("Login");
-                },1000);
-            }
-        },(err) => {
-            errorShow(err);
+                else{
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },(err) => {
+                errorShow(err);
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
-    _similarItem(similarData){   //console.log(similarData);
+    _similarItem(similarData){
         let uri,results;
         results = similarData.map((obj,index) => {
             uri = RequestImage(obj.id);
 
             return (
-                <TouchableWithoutFeedback key={index} onPress={() => this._similarItemOnPress(obj.id,obj.hex_id)}>
+                <TouchableWithoutFeedback
+                    key={index}
+                    onPress={() => this._similarItemOnPress(obj.id,obj.hex_id)}
+                >
                     <View style={styles.boxFooterLump}>
                         <Image source={{uri:uri}} style={styles.bookSmall}/>
                         <Text style={styles.boxFooterText} numberOfLines={1}>{obj.title}</Text>

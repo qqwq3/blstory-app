@@ -22,7 +22,7 @@ import Loading from '../common/Loading';
 import Fecth from '../common/Fecth';
 import Icon from '../common/Icon';
 import RequestImage from '../common/RequestImage';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class MyBookMark extends Component{
     constructor(props){
@@ -49,37 +49,45 @@ class MyBookMark extends Component{
             params = '?page='+ page +'&limit=8',
             headers = {'Authorized-Key': this.authorized_key,'SESSION_ID': launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-            if(res.code === 0){
-                let items = this.cachedResults.items.slice();
-                items = items.concat(res.data.records);
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    let items = this.cachedResults.items.slice();
+                    items = items.concat(res.data.records);
 
-                this.cachedResults.items = items;
-                this.cachedResults.total = res.data.total_records;
-                this.cachedResults.nextPage += 1;
+                    this.cachedResults.items = items;
+                    this.cachedResults.total = res.data.total_records;
+                    this.cachedResults.nextPage += 1;
+                    this.setState({
+                        dataStatus: true,
+                        isLoading: false,
+                        isLoadMore: false,
+                        data: items,
+                    });
+                }
+                else{
+                    this.setState({
+                        dataStatus: true,
+                        isLoading: false,
+                        isLoadMore: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
                 this.setState({
                     dataStatus: true,
                     isLoading: false,
                     isLoadMore: false,
-                    data: items,
                 });
-            }
 
-            if(res.code === 404){
-                this.setState({
-                    dataStatus: false,
-                    isLoading: false,
-                    isLoadMore: false,
-                });
-            }
-        },err => {
-            this.setState({
-                dataStatus: false,
-                isLoading: false,
-                isLoadMore: false,
-            });
-            errorShow(err);
-        },headers);
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _deleteRow(item, secId, rowId, rowMap) {
         let book_id_hex = item.book_id_hex;
@@ -95,13 +103,22 @@ class MyBookMark extends Component{
         this.cachedResults.nextPage = 1;
         this.cachedResults.total = 0;
 
-        Fecth.post(url,params,headers,res => {
-            if(res.code === 0){
-                this.refs.toast.show('删除成功！',1000);
-                this._requestData(1);
-            }
-        },err => {
-            errorShow(err);
+        networkCheck(() => {
+            Fecth.post(url,params,headers,res => {
+                if(res.code === 0){
+                    this.refs.toast.show('删除成功！',1000);
+                    this._requestData(1);
+                }
+                else{
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
+                errorShow(err);
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _renderHiddenRow(data, secId, rowId, rowMap){
@@ -159,12 +176,16 @@ class MyBookMark extends Component{
     _continueRead(chapter_id_hex,book_title,book_id_hex){
         let authorized_key = this.authorized_key;
 
-        this.props.navigation.navigate('Reader',{
-            chapter_id: chapter_id_hex,
-            hex_id: book_id_hex,
-            authorized_key: authorized_key,
-            readerStatus: 'indirect',
-            book_title: book_title,
+        networkCheck(() => {
+            this.props.navigation.navigate('Reader',{
+                chapter_id: chapter_id_hex,
+                hex_id: book_id_hex,
+                authorized_key: authorized_key,
+                readerStatus: 'indirect',
+                book_title: book_title,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _fetchMoreData(){

@@ -28,7 +28,7 @@ import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
 import StorageUtil from '../common/StorageUtil';
 import Icon from '../common/Icon';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class Reader extends React.Component{
     constructor(props){
@@ -102,9 +102,12 @@ class Reader extends React.Component{
         const { navigate } = this.props.navigation;
 
         if(totalStatus === true && currentContent.length === 0){
-            Alert.alert('温馨提示',result.text+'，剩余鹿币'+result.value,[
+            Alert.alert('温馨提示',result.text+'，目前剩余'+ result.value +'鹿币。',[
                 {
-                    text:'确定',onPress:() => navigate("Spread")
+                    text: '关闭',onPress:() => {},
+                },
+                {
+                    text:'确定',onPress:() => navigate("Spread",{authorized_key: this.authorized_key })
                 }
             ]);
         }
@@ -119,13 +122,15 @@ class Reader extends React.Component{
                     openDrawerOffset={0.2}
                     closedDrawerOffset={0}
                     style={styles.drawer}
-                    content={<ReaderCatalogue
-                        hexId={this.book_hex_id}
-                        setChapterId={(chapter_id,book_title) => this._setChapterId(chapter_id,book_title)}
-                        navigation={this.props.navigation}
-                        authorizedKey={this.authorized_key}
-                        bookTitle={this.book_title}
-                    />}
+                    content={
+                        <ReaderCatalogue
+                            hexId={this.book_hex_id}
+                            setChapterId={(chapter_id,book_title) => this._setChapterId(chapter_id,book_title)}
+                            navigation={this.props.navigation}
+                            authorizedKey={this.authorized_key}
+                            bookTitle={this.book_title}
+                        />
+                    }
                     ref={'drawer'}
                 >
                     <View style={{flex:1}}>
@@ -286,29 +291,47 @@ class Reader extends React.Component{
             params = '?chapter_id=book_id' + hex_id,
             headers = {'SESSION-ID': launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-           console.log('reader',res);
-           if(res.code === 0){
-               this.setState({
-                   totalStatus: true,
-                   totalTitle: this.state.book_title,
-                   totalRecords: res.data.chapters_count,
-                   currentRecords: res.data.chapter.source_site_index,
-                   currentContent: res.data.chapter.content,
-                   currentTitle: res.data.chapter.title,
-                   prev: res.data.chapter.turn_page.prev,
-                   prevHexId: '',
-                   nextHexId: res.data.chapter.turn_page.next.hex_id,
-                   isLoading: false,
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    this.setState({
+                        totalStatus: true,
+                        totalTitle: this.state.book_title,
+                        totalRecords: res.data.chapters_count,
+                        currentRecords: res.data.chapter.source_site_index,
+                        currentContent: res.data.chapter.content,
+                        currentTitle: res.data.chapter.title,
+                        prev: res.data.chapter.turn_page.prev,
+                        prevHexId: '',
+                        nextHexId: res.data.chapter.turn_page.next.hex_id,
+                        isLoading: false,
 
-                   book_id: res.data.chapter.book_id,
-                   chapter_id: res.data.chapter.id,
-                   result: res.data.chapter.result || {},
-               });
-           }
-        },err => {
-            errorShow(err);
-        },headers);
+                        book_id: res.data.chapter.book_id,
+                        chapter_id: res.data.chapter.id,
+                        result: res.data.chapter.result || {},
+                    });
+                }
+                else{
+                    this.setState({
+                        totalStatus: true,
+                        isLoading: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
+                this.setState({
+                    totalStatus: true,
+                    isLoading: false,
+                });
+
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _plateType(index){
         this.setState({
@@ -398,6 +421,8 @@ class Reader extends React.Component{
         });
     }
     _renderItem(items){
+        const  { currentContent } = this.state;
+
         return (
             <View style={{width:Devices.width, flex:1,backgroundColor:items.backgroundColor}}>
                 <View style={styles.readerTitle}>
@@ -410,37 +435,48 @@ class Reader extends React.Component{
                 <View style={[styles.bigReaderTitle]}>
                     <Text style={[styles.bigReaderTitleText,{fontSize:15,color:this.state.fontColor}]}>{this.state.currentTitle}</Text>
                 </View>
-                <ScrollView
-                    style={styles.readerTextContent}
-                    ref='scroll'
-                    showsVerticalScrollIndicator={false}
-                >
-                    <TouchableOpacity
-                        activeOpacity={1}
-                        onPress={() => this._openSetBar()}
-                    >
-                        {
-                            this.state.currentContent.map((content,index) => {
-                                return (
-                                    <Text
-                                        key={index}
-                                        selectable={true}
-                                        style={[styles.readerText,
-                                            {
-                                                fontSize:items.fontSize,
-                                                lineHeight:items.lineHeight,
-                                                marginBottom: items.marginBottom,
-                                                paddingLeft: 8,
-                                                color: items.fontColor,
-                                            }]}
-                                    >
-                                        {'        ' + content}
-                                    </Text>
-                                )
-                            })
-                        }
-                    </TouchableOpacity>
-                </ScrollView>
+                {
+                    currentContent.length !== 0 ? (
+                        <ScrollView
+                            style={styles.readerTextContent}
+                            ref='scroll'
+                            showsVerticalScrollIndicator={false}
+                        >
+                            <TouchableOpacity
+                                activeOpacity={1}
+                                onPress={() => this._openSetBar()}
+                            >
+                                {
+                                    currentContent.map((content,index) => {
+                                        return (
+                                            <Text
+                                                key={index}
+                                                selectable={true}
+                                                style={[styles.readerText,
+                                                    {
+                                                        fontSize:items.fontSize,
+                                                        lineHeight:items.lineHeight,
+                                                        marginBottom: items.marginBottom,
+                                                        paddingLeft: 8,
+                                                        color: items.fontColor,
+                                                    }]}
+                                            >
+                                                {'        ' + content}
+                                            </Text>
+                                        )
+                                    })
+                                }
+                            </TouchableOpacity>
+                        </ScrollView>
+                    ) : (
+                        <TouchableOpacity
+                            activeOpacity={1}
+                            accessible={true}
+                            onPress={() => this._openSetBar()}
+                            style={[styles.clickStyle]}
+                        />
+                    )
+                }
                 <View style={styles.readerContentFooter}>
                     <Text
                         style={[styles.smallReaderTitleText,{color:this.state.modelSwitchStatus?this.state.fontColor:'#999999'}]}
@@ -478,7 +514,7 @@ class Reader extends React.Component{
         }
     }
     _scrollTop(){
-        this.refs.scroll.scrollTo({x: 0,y: 0,animated: true});
+        this.refs.scroll.scrollTo({x: 0,y: 0,animated: false});
     }
     _prevData(chapter_id,book_id,confirm_pay){
         if(chapter_id === ''){
@@ -504,32 +540,47 @@ class Reader extends React.Component{
             params = "?chapter_id="+ chapter_id +"&confirm_pay=" + confirm_pay,
             headers = {"Authorized-Key":this.authorized_key,"SESSION-ID": launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-            console.log('拖',res);
-            if(res.code === 0){
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    this.setState({
+                        totalStatus: true,
+                        prevHexId: res.data.chapter.turn_page.prev === null ? '' : res.data.chapter.turn_page.prev.hex_id,
+                        nextHexId: res.data.chapter.turn_page.next === null ? '' : res.data.chapter.turn_page.next.hex_id,
+                        currentRecords: res.data.chapter.source_site_index,
+                        currentContent: res.data.chapter.content,
+                        currentTitle: res.data.chapter.title,
+                        isLoading: false,
+                        totalTitle: this.state.book_title,
+                        totalRecords: res.data.chapters_count,
+                        prev: res.data.chapter.turn_page.prev,
+
+                        book_id: res.data.chapter.book_id,
+                        chapter_id: res.data.chapter.id,
+                        result: res.data.chapter.result || {},
+                    });
+                }
+                else{
+                    this.setState({
+                        totalStatus: true,
+                        isLoading: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
                 this.setState({
                     totalStatus: true,
-                    prevHexId: res.data.chapter.turn_page.prev === null ? '' : res.data.chapter.turn_page.prev.hex_id,
-                    nextHexId: res.data.chapter.turn_page.next === null ? '' : res.data.chapter.turn_page.next.hex_id,
-                    currentRecords: res.data.chapter.source_site_index,
-                    currentContent: res.data.chapter.content,
-                    currentTitle: res.data.chapter.title,
                     isLoading: false,
-                    totalTitle: this.state.book_title,
-                    totalRecords: res.data.chapters_count,
-                    prev: res.data.chapter.turn_page.prev,
-
-                    book_id: res.data.chapter.book_id,
-                    chapter_id: res.data.chapter.id,
-                    result: res.data.chapter.result || {},
                 });
-            }
-            else if(res.code === 404){
-                console.log(res);
-            }
-        },err => {
-            errorShow(err);
-        },headers);
+
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _openSetBar(){
         this.setState({
@@ -569,6 +620,7 @@ class Reader extends React.Component{
             themeIndex: this._themeIndex(),
         });
 
+        // 储存阅读模式相关的值
         StorageUtil.save('readerModel',{
             comColor: !this.state.modelSwitchStatus ? '#8493a2' : '#ffffff',
             barBackgroundColor: !this.state.modelSwitchStatus ? 'rgba(32,35,37,0.95)' : 'rgba(0,0,0,0.85)',
@@ -618,12 +670,21 @@ class Reader extends React.Component{
 
         this._commetsControl();
 
-        Fecth.post(url,params,headers,res => {
-            if(res.code === 0){
-                this.refs.toast.show('评论成功！',600);
-            }
-        },err => {
-            errorShow(err);
+        networkCheck(() => {
+            Fecth.post(url,params,headers,res => {
+                if(res.code === 0){
+                    this.refs.toast.show('评论成功！',600);
+                }
+                else{
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
+                errorShow(err);
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _closeComments(){
@@ -638,6 +699,10 @@ class Reader extends React.Component{
 export default Reader;
 
 const styles = StyleSheet.create({
+    clickStyle: {
+        flex: 1,
+        overflow: 'hidden',
+    },
     readerSlidePagePrompt:{
         width: Devices.width,
         height: 200,

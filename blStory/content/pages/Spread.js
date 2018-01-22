@@ -7,7 +7,6 @@ import {
     Text,
     StyleSheet,
     TouchableOpacity,
-    StatusBar,
     Alert,
     TextInput,
     Platform,
@@ -22,7 +21,7 @@ import TextInputModel from '../common/TextInputModel';
 import { ToUpperCase } from '../common/Util';
 import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class Spread extends Component{
     constructor(props){
@@ -34,32 +33,46 @@ class Spread extends Component{
             isLoading: false,
             str: '',
         };
+        this.authorized_key = this.props.navigation.state.params.authorized_key;
     }
     componentWillMount() {
-        if(Platform.OS === 'android'){
-            StatusBar.setBackgroundColor('#ff5a5a');
-        }
-
         this._spreadGetDevice();
-    }
-    componentWillUnmount() {
-        StatusBar.setBackgroundColor('#ffffff');
     }
     _spreadGetDevice(){
         let url = Api.common + Api.category.spreadGetDevice,
             params = '',
-            headers = {'SESSION-ID': launchConfig.sessionID};
+            headers = {
+                'SESSION-ID': launchConfig.sessionID,
+                'Authorized-Key': this.authorized_key
+            };
 
-        Fecth.get(url,params,res => { console.log('spread',res);
-            if(res.code === 0){
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    this.setState({
+                        obj: res.data,
+                        isLoading: false,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoading: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err =>{
                 this.setState({
-                    obj: res.data,
                     isLoading: false,
                 });
-            }
-        },err =>{
-            errorShow(err);
-        },headers);
+
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     render(){
         let obj = this.state.obj !== null && this.state.obj;
@@ -72,7 +85,7 @@ class Spread extends Component{
                             <TouchableOpacity
                                 style={styles.headerBox}
                                 activeOpacity={1}
-                                onPress={() => this._exchange(ToUpperCase(obj.instance_code))}
+                                onPress={() => this._exchange()}
                             >
                                 <Text style={styles.headerBoxText}>兑换</Text>
                             </TouchableOpacity>
@@ -91,7 +104,7 @@ class Spread extends Component{
                     <Text style={styles.blText}>鹿币</Text>
                 </View>
                 <View style={styles.lbSumView}>
-                    <Text style={styles.lbSumText}>{obj.play_of_day - obj.today_play}</Text>
+                    <Text style={styles.lbSumText}>{(obj.play_of_day - obj.today_play + (obj.balance | 0)) || 0}</Text>
                 </View>
 
                 <View style={styles.bhControl}>
@@ -211,7 +224,7 @@ class Spread extends Component{
 
                 <Toast
                     ref="toast"
-                    position={'center'}
+                    position={'top'}
                     fadeInDuration={750}
                     fadeOutDuration={1000}
                     opacity={0.8}
@@ -293,12 +306,8 @@ class Spread extends Component{
         return Clipboard.setString(code);
     }
     // 兑换
-    _exchange(code){
-        if (typeof code !== 'string') {
-            code = '';
-        }
-
-        this._icModal && this._icModal.show(code);
+    _exchange(){
+        this._icModal && this._icModal.show();
     }
     // 切换
     _switch(code){
@@ -310,53 +319,49 @@ class Spread extends Component{
     }
     // 提交兑换
     _exchangeSubmit(code){
-        if(code){
-            StorageUtil.get('baseInfo',res => {
-                let url = Api.common + Api.category.spreadExchange,
-                    params = Fecth.dictToFormData({code: code}),
-                    headers = {'SESSION-ID': res.sessionID};
+        let urlSuffix = Api.category.spreadExchange;
+        let successPrompt = '兑换成功！';
+        let failPrompt = '请输入有效的兑换码';
 
-                Fecth.post(url,params,headers,res => {
-                    if(res.code === 0){
-                        this.refs['toast'].show('兑换成功！',600);
-                        this._spreadGetDevice();
-                    }
-                    else{
-                        this.refs['toast'].show(res.message,600);
-                    }
-                    this._acModal && this._acModal.close();
-                },err =>{
-                    errorShow(err);
-                });
-            });
-        }
-        else{
-            this.refs['toast'].show('请输入有效的兑换码',600);
-        }
+        this._comFunction(code,urlSuffix,successPrompt,failPrompt,() => {
+            this._icModal && this._icModal.close();
+        });
     }
     //  提交切换
-    _switchSubmit(code){
-        if(code){
-            StorageUtil.get('baseInfo',res => {
-                let url = Api.common + Api.category.spreadSwitch,
-                    params = Fecth.dictToFormData({code: code}),
-                    headers = {'SESSION-ID': res.sessionID};
+    _switchSubmit(code){ console.log('switch',code);
+        let urlSuffix = Api.category.spreadSwitch;
+        let successPrompt = '切换成功！';
+        let failPrompt = '请输入有效的账户编码';
 
-                Fecth.post(url,params,headers,res => {
-                    if(res.code === 0){
-                        this.refs['toast'].show('切换成功！',600);
-                    }
-                    else{
-                        this.refs['toast'].show(res.message,600);
-                    }
-                    this._acModal && this._acModal.close();
-                },err =>{
-                    errorShow(err);
-                });
+        this._comFunction(code,urlSuffix,successPrompt,failPrompt,() => {
+            this._acModal && this._acModal.close();
+        });
+    }
+    // 公共方法
+    _comFunction(code,urlSuffix,successPrompt,failPrompt,callback){
+        if(code){
+            let url = Api.common + urlSuffix,
+                params = Fecth.dictToFormData({code: code}),
+                headers = {'SESSION-ID': launchConfig.sessionID};
+
+            // 提交请求
+            Fecth.post(url,params,headers,res => {
+                if(res.code === 0){
+                    this.refs['toast'].show(successPrompt,600);
+                }
+                else{
+                    this.refs['toast'].show(res.message,600);
+                }
+
+                callback && callback();
+            },err =>{
+                callback && callback();
+                errorShow(err);
             });
         }
         else{
-            this.refs['toast'].show('请输入有效的账户编码',600);
+            callback && callback();
+            this.refs['toast'].show(failPrompt,600);
         }
     }
 }

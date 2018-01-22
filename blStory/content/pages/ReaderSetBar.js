@@ -17,10 +17,10 @@ import Icon from '../common/Icon';
 // 阅读头部bar
 class ReaderHeaderSetBar extends React.Component{
     static propTypes = {
-        barBackgroundColor: PropTypes.string,
+        barBackgroundColor: PropTypes.string.isRequired,
         returnBookDetail: PropTypes.func,
-        comColor: PropTypes.string,
-        totalTitle: PropTypes.string,
+        comColor: PropTypes.string.isRequired,
+        totalTitle: PropTypes.string.isRequired,
     };
     render(){
         return (
@@ -53,7 +53,7 @@ class ReaderFooterSetBar extends React.Component{
     static propTypes = {
         barBackgroundColor: PropTypes.string,
         modelSwitchStatus: PropTypes.bool,
-        comColor: PropTypes.string,
+        comColor: PropTypes.string.isRequired,
         openControlPanel: PropTypes.func,
         openFontSetPanel: PropTypes.func,
         readerModelSwitch: PropTypes.func,
@@ -113,9 +113,9 @@ class ReaderFooterSetBar extends React.Component{
 // 阅读底部字体设置
 class ReaderFooterFontSetBar extends React.Component{
     static propTypes = {
-        barBackgroundColor: PropTypes.string,
+        barBackgroundColor: PropTypes.string.isRequired,
         fontSizeTypeSubtract: PropTypes.func,
-        comColor: PropTypes.string,
+        comColor: PropTypes.string.isRequired,
         fontSizeTypeAdd: PropTypes.func,
         themeIndex: PropTypes.number,
         plateTypeIndex: PropTypes.number,

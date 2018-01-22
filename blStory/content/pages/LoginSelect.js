@@ -11,20 +11,15 @@ import {
     Alert,
     AlertIOS,
     Platform,
-    NetInfo,
 } from 'react-native';
 import * as wechat from 'react-native-wechat';
 import Fecth from '../common/Fecth';
 import { Api } from "../common/Api";
 import Icon from '../common/Icon';
 import StorageUtil from '../common/StorageUtil';
-import PropTypes from 'prop-types';
-import { errorShow } from '../common/Util';
+import { errorShow,networkCheck } from '../common/Util';
 
 class LoginSelect extends Component{
-    static propTypes = {
-        isConnected: PropTypes.bool,
-    };
     constructor(props){
         super(props);
         this.state = {
@@ -35,13 +30,6 @@ class LoginSelect extends Component{
             ],
             user: {},
         }
-    }
-    componentWillMount(){
-        StorageUtil.get('user',res => {
-            this.setState({
-                user: res
-            });
-        });
     }
     render(){
         return (
@@ -66,23 +54,22 @@ class LoginSelect extends Component{
         );
     };
     _login(key){
-        NetInfo.isConnected.fetch().done((isConnected) => {
-            if(isConnected === true){
-                switch(key){
-                    case 'qq': // QQ登录
-                        Alert.alert('系统提示','此登录方式暂未开发',[{text: '确定'}]);
-                        break;
-                    case 'wx': // 微信登录
-                        this._wxLogin();
-                        break;
-                    case 'wb': // 微博登录
-                        Alert.alert('系统提示','此登录方式暂未开发',[{text: '确定'}]);
-                        break;
-                }
+        const { navigate } = this.props.navigation;
+
+        networkCheck(() => {
+            switch(key){
+                case 'qq': // QQ登录
+                    Alert.alert('系统提示','此登录方式暂未开发',[{text: '确定'}]);
+                    break;
+                case 'wx': // 微信登录
+                    this._wxLogin();
+                    break;
+                case 'wb': // 微博登录
+                    Alert.alert('系统提示','此登录方式暂未开发',[{text: '确定'}]);
+                    break;
             }
-            else{
-                this.props.connect(isConnected);
-            }
+        },() => {
+            navigate("NetWork");
         });
     }
     _wxLogin(){
@@ -93,29 +80,17 @@ class LoginSelect extends Component{
         //判断微信是否安装
         wechat.isWXAppInstalled().then((isInstalled) => {
             if (isInstalled) {
-                // if(user !== {} && user){
-                //     this.props.navigation.navigate('Home',{
-                //         user:{
-                //             id: user.id,
-                //             name: user.name,
-                //             authorized_key: user.authorized_key,
-                //             hex_id: user.hash_id,
-                //         }
-                //     });
-                // }
-                //else{
-                    //发送授权请求
-                    wechat.sendAuthRequest(scope, state)
-                        .then(responseCode => {
-                            //返回code码，通过code获取access_token
-                            this._getAccessToken(responseCode.code,state);
-                        })
-                        .catch(err => {
-                            Alert.alert('登录授权发生错误：', err.message, [
-                                {text: '确定'}
-                            ]);
-                    });
-                //}
+                //发送授权请求
+                wechat.sendAuthRequest(scope, state)
+                    .then(responseCode => {
+                        //返回code码，通过code获取access_token
+                        this._getAccessToken(responseCode.code,state);
+                    })
+                    .catch(err => {
+                        Alert.alert('登录授权发生错误：', err.message, [
+                            {text: '确定'}
+                        ]);
+                });
             } else {
                 Alert.alert('提示',`请先安装微信软件`,[
                     {text: '确定'}
@@ -126,11 +101,12 @@ class LoginSelect extends Component{
     _getAccessToken(code,state){
         let url = Api.common + Api.category.weiXinCallback,
             params = JSON.stringify({code:code,state:state}),
-            headers = {"SESSION-ID": launchConfig.sessionID};
+            headers = {};
 
-        Fecth.post(url,params,headers,(res) => {
+        Fecth.post(url,params,headers,(res) => { //console.log('loginSelect',headers,launchConfig);
             if(res.code === 0){
                 StorageUtil.save("user",res.data,null);
+
                 this.props.navigation.navigate('Home',{
                     user:{
                         id: res.data.id,
@@ -141,8 +117,13 @@ class LoginSelect extends Component{
                 });
             }
             else{
-                console.log('1',res);
-                this.props.toast.show(res.message,1000);
+                console.log('loginSelect',res);
+
+                Alert.alert('系统提示','系统繁忙，请稍后再试！',[
+                    {
+                        text: '关闭',
+                    }
+                ]);
             }
         },(err) => {
             errorShow(err);

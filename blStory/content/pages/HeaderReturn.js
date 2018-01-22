@@ -56,11 +56,11 @@ const styles = StyleSheet.create({
 class HeaderReturn extends Component{
     static propTypes = {
         onPress: PropTypes.func,
-        title: PropTypes.string,
+        title: PropTypes.string.isRequired,
         bottomBorder: PropTypes.bool,
-        backgroundColor: PropTypes.string,
-        color: PropTypes.string,
-        borderBottomColor: PropTypes.string,
+        backgroundColor: PropTypes.string.isRequired,
+        color: PropTypes.string.isRequired,
+        borderBottomColor: PropTypes.string.isRequired,
     };
     static defaultProps = {
         title: '',

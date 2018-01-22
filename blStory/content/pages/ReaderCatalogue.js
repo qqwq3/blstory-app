@@ -21,7 +21,7 @@ import Loading from '../common/Loading';
 import Fecth from '../common/Fecth';
 import SelectChapterArea from './SelectChapterArea';
 import Icon from '../common/Icon';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class ReaderCatalogue extends React.Component{
     constructor(props){
@@ -183,32 +183,41 @@ class ReaderCatalogue extends React.Component{
             params = '?page='+ page + '&limit=15',
             headers = {"Authorized-Key": this.authorized_key,"SESSION-ID": launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-            if(res.code === 0){
-                let items = this.cachedResults.items.slice();
-                items = items.concat(res.data.records);
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    let items = this.cachedResults.items.slice();
+                    items = items.concat(res.data.records);
 
-                this.cachedResults.items = items;
-                this.cachedResults.total = res.data.total_records;
-                this.cachedResults.nextPage += 1;
+                    this.cachedResults.items = items;
+                    this.cachedResults.total = res.data.total_records;
+                    this.cachedResults.nextPage += 1;
+                    this.setState({
+                        bookMarkDataStatus: true,
+                        isLoadMore: false,
+                    });
+                }
+                else{
+                    this.setState({
+                        bookMarkDataStatus: true,
+                        isLoadMore: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
                 this.setState({
                     bookMarkDataStatus: true,
                     isLoadMore: false,
                 });
-            }
 
-            if(res.code === 404){
-                this.setState({
-                    bookMarkDataStatus: false,
-                });
-            }
-        },err => {
-            this.setState({
-                isLoadMore: false,
-                bookMarkDataStatus: false,
-            });
-            errorShow(err);
-        },headers);
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _requestChapterListData(page){
         let hex_id = this.props.hexId;
@@ -216,23 +225,42 @@ class ReaderCatalogue extends React.Component{
             params = '?book_id=' + hex_id + '&page=' + page,
             headers = {"SESSION-ID": launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-            if(res.code === 0){
-                let chapter = ChapterPartition.noTraverse(res.data.total_records,page,100);
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    let chapter = ChapterPartition.noTraverse(res.data.total_records,page,100);
 
+                    this.setState({
+                        isLoading: false,
+                        chapters: res.data.chapters,
+                        total_records: res.data.total_records,
+                        startIndex: chapter.startIndex,
+                        endIndex: chapter.endIndex,
+                        totalPage: chapter.totalPage,
+                        status: true,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoading: false,
+                        status: true,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
                 this.setState({
                     isLoading: false,
-                    chapters: res.data.chapters,
-                    total_records: res.data.total_records,
-                    startIndex: chapter.startIndex,
-                    endIndex: chapter.endIndex,
-                    totalPage: chapter.totalPage,
                     status: true,
                 });
-            }
-        },err => {
-            errorShow(err);
-        },headers);
+
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _toRead(chapter_id,book_title){
         this.props.setChapterId(chapter_id,book_title);

@@ -16,7 +16,7 @@ import Loading from '../common/Loading';
 import Fecth from '../common/Fecth';
 import ChapterPartition from '../common/ChapterPartition';
 import SelectChapterArea from './SelectChapterArea';
-import { errorShow } from '../common/Util';
+import { errorShow,loginTimeout,networkCheck } from '../common/Util';
 
 class BookDetailCatalog extends Component{
     constructor(props){
@@ -56,23 +56,36 @@ class BookDetailCatalog extends Component{
             params = '?book_id=' + hex_id + '&page=' + page,
             headers = {'SESSION-ID': launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-            if(res.code === 0){
-                let chapter = ChapterPartition.noTraverse(res.data.total_records,page,100);
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    let chapter = ChapterPartition.noTraverse(res.data.total_records,page,100);
 
-                this.setState({
-                    isLoading: false,
-                    chapters: res.data.chapters,
-                    total_records: res.data.total_records,
-                    startIndex: chapter.startIndex,
-                    endIndex: chapter.endIndex,
-                    totalPage: chapter.totalPage,
-                    status: true,
-                });
-            }
-        },err => {
-            errorShow(err);
-        },headers);
+                    this.setState({
+                        isLoading: false,
+                        chapters: res.data.chapters,
+                        total_records: res.data.total_records,
+                        startIndex: chapter.startIndex,
+                        endIndex: chapter.endIndex,
+                        totalPage: chapter.totalPage,
+                        status: true,
+                    });
+                }
+                else{
+                    this.setState({
+                        isLoading: false,
+                        status: true,
+                    });
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
+            },err => {
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _openChapterSelect(){
         this.setState({pop: true});
@@ -150,12 +163,16 @@ class BookDetailCatalog extends Component{
         let authorized_key = this.authorized_key;
         let book_title = this.book_title;
 
-        this.props.navigation.navigate('Reader',{
-            chapter_id: chapter_id,
-            hex_id: hex_id,
-            authorized_key: authorized_key,
-            readerStatus: 'indirect',
-            book_title: book_title,
+        networkCheck(() => {
+            this.props.navigation.navigate('Reader',{
+                chapter_id: chapter_id,
+                hex_id: hex_id,
+                authorized_key: authorized_key,
+                readerStatus: 'indirect',
+                book_title: book_title,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
 }

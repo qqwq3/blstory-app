@@ -20,7 +20,7 @@ import HomeMenu from './HomeMenu';
 import { Api , Devices } from '../common/Api';
 import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
-import { errorShow,networkCheck } from '../common/Util';
+import { errorShow,networkCheck,loginTimeout } from '../common/Util';
 
 // 装饰点的颜色取值合集
 const dotColor = {
@@ -73,22 +73,32 @@ class HomeContent extends Component{
                         isLoading: false,
                     });
                 }
+                else{
+                    this.setState({
+                        refreshing: false,
+                        isLoading: false,
+                    });
+
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
+                }
             },err => {
                 this.setState({
                     refreshing: false,
                     isLoading: false,
                 });
+
                 errorShow(err);
             },headers);
     }
     _moreBooks(){
         const {navigate} = this.props.navigation;
 
-        networkCheck((isConnected) => {
+        networkCheck(() => {
             navigate("MyLibrary",{user:{...this.props.user}});
-            this.props.isConnected(isConnected);
-        },(isConnected) => {
-            this.props.isConnected(isConnected);
+        },() => {
+            navigate("NetWork");
         });
     }
     _rowRenderItem = ({item,index}) => {
@@ -148,15 +158,16 @@ class HomeContent extends Component{
         );
     };
     _openDetails(hex_id,id){
-        networkCheck((isConnected) => {
-            this.props.navigation.navigate("BookDetail",{
+        const { navigate } = this.props.navigation;
+
+        networkCheck(() => {
+            navigate("BookDetail",{
                 hex_id: hex_id,
                 id: id,
                 authorized_key: this.props.user.authorized_key,
             });
-            this.props.isConnected(isConnected);
-        },(isConnected) => {
-            this.props.isConnected(isConnected);
+        },() => {
+            navigate("NetWork");
         });
     }
     _innerRenderItem = ({item,index}) => {
@@ -180,7 +191,7 @@ class HomeContent extends Component{
         let params = '/' +types;
         let { navigate } = this.props.navigation;
 
-        networkCheck((isConnected) => {
+        networkCheck(() => {
             this.setState({
                 index: index,
                 isLoading: true
@@ -194,13 +205,21 @@ class HomeContent extends Component{
                         isLoading: false,
                     });
                 }
+                else{
+                    this.setState({
+                        menuStyleListenr: false,
+                        isLoading: false,
+                    });
+
+                    loginTimeout(_ => {
+                        navigate("Login");
+                    });
+                }
             },(err) => {
                 errorShow(err);
             });
-
-            this.props.isConnected(isConnected);
-        },(isConnected) => {
-            this.props.isConnected(isConnected);
+        },() => {
+            navigate("NetWork");
         });
     }
     _refresh(){

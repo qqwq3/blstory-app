@@ -7,6 +7,7 @@ import {
     Text,
     StyleSheet,
     View,
+    ViewPropTypes,
 } from 'react-native';
 import PropTypes from 'prop-types';
 
@@ -15,8 +16,8 @@ class XingrenLink extends React.Component {
         onPress: PropTypes.func,
         text: PropTypes.string.isRequired,
         textStyle: Text.propTypes.style,
-        style: View.propTypes.style,
-        disabledStyle: View.propTypes.style,
+        style: (ViewPropTypes || View.propTypes).style,
+        disabledStyle: (ViewPropTypes || View.propTypes).style,
         disabledTextStyle: Text.propTypes.style,
         disabled: PropTypes.bool,
     };

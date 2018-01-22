@@ -25,8 +25,7 @@ import { Api,Devices } from "../common/Api";
 import LibrayMenu from './LibraryMenu';
 import RequestImage from '../common/RequestImage';
 import Loading from '../common/Loading';
-import NetWork from './NetWork';
-import { errorShow,networkCheck } from '../common/Util';
+import { errorShow,networkCheck,loginTimeout } from '../common/Util';
 
 class MyLibrary extends Component{
     constructor(props){
@@ -47,7 +46,6 @@ class MyLibrary extends Component{
             name: null,
 
             balance: 0,
-            isConnected: true,
         };
         this.ds = new ListView.DataSource({rowHasChanged:(r1,r2) => r1 !== r2});
         this.user = this.props.navigation.state.params.user;
@@ -79,103 +77,83 @@ class MyLibrary extends Component{
 
         return (
             <View style={{flex:1}}>
-                {
-                    isConnected ? (
-                        <DrawerJsx
-                            side="left"
-                            open={false}
-                            tapToClose={true}
-                            type='overlay'
-                            openDrawerOffset={0.3}
-                            closedDrawerOffset={0}
-                            style={styles.drawer}
-                            tweenDuration={250}
-                            elevation={4}
-                            ref={'drawer'}
-                            content={
-                                <DrawerPageMenu
-                                    openWay='skipClose'
-                                    onPress={(router) => navigate(router,{user: user,searchStatus: false})}
-                                    closeDrawer={() => this._closeControlPanel()}
-                                    navigation={this.props.navigation}
-                                    logout={() => this._logout()}
-                                    user={user}
-                                    balance={this.state.balance}
-                                    isConnected={this._isConnected.bind(this)}
-                                />
-                            }
-                        >
-                            <HomeHeader
-                                openDrawer={() => this._openControlPanel()}
-                                goMyCollect={() => this._goMyCollect(authorized_key)}
-                                goMyBookMark={() => this._goMyBookMark(authorized_key)}
-                                navigation={this.props.navigation}
-                                status={false}
-                                search={(value) => this._search(value)}
-                                ref={'textInput'}
-                            />
-                            <ListView
-                                dataSource={this.ds.cloneWithRows(this.state.data)}
-                                renderRow={(item) => this._renderRow(item)}
-                                showsVerticalScrollIndicator={false}
-                                onEndReached={this._fetchMoreData.bind(this)}
-                                onEndReachedThreshold={50}
-                                automaticallyAdjustContentInsets={false}
-                                renderHeader={this._renderHeader.bind(this)}
-                                renderFooter={this._renderFooter.bind(this)}
-                                enableEmptySections={true}
-                                ref={ref => this._listViewRef = ref}
-                                onScroll={this._onScroll.bind(this)}
-                                refreshControl={
-                                    <RefreshControl
-                                        refreshing={this.state.refreshing}
-                                        onRefresh={this._refresh.bind(this)}
-                                        tintColor='#f3916b'
-                                        colors={['#f3916b']}
-                                    />
-                                }
-                            />
-                            <Toast
-                                ref="toast"
-                                position={'center'}
-                                fadeInDuration={750}
-                                fadeOutDuration={1000}
-                                opacity={0.8}
-                                style={{backgroundColor:'#000000'}}
-                                textStyle={{fontSize:14,color:'#fff'}}
-                            />
-                            <Loading opacity={0.6} show={this.state.isLoading}/>
-                            {
-                                this.state.returnTopStatus ?
-                                    <TouchableOpacity onPress={() => this._returnTop()} style={styles.zdBox}>
-                                        <Text style={styles.zdBoxFont}>返回</Text>
-                                        <Text style={styles.zdBoxFont}>顶部</Text>
-                                    </TouchableOpacity>
-                                    : null
-                            }
-                        </DrawerJsx>
-                    ) : (
-                        <NetWork
-                            headerStatus={false}
-                            refreshNetwork={() => this._refreshNetwork()}
+                <DrawerJsx
+                    side="left"
+                    open={false}
+                    tapToClose={true}
+                    type='overlay'
+                    openDrawerOffset={0.3}
+                    closedDrawerOffset={0}
+                    style={styles.drawer}
+                    tweenDuration={250}
+                    elevation={4}
+                    ref={'drawer'}
+                    content={
+                        <DrawerPageMenu
+                            openWay='skipClose'
+                            onPress={(router) => navigate(router,{user: user,searchStatus: false})}
+                            closeDrawer={() => this._closeControlPanel()}
+                            navigation={this.props.navigation}
+                            logout={() => this._logout()}
+                            user={user}
+                            balance={this.state.balance}
                         />
-                    )
-                }
+                    }
+                >
+                    <HomeHeader
+                        openDrawer={() => this._openControlPanel()}
+                        goMyCollect={() => this._goMyCollect(authorized_key)}
+                        goMyBookMark={() => this._goMyBookMark(authorized_key)}
+                        navigation={this.props.navigation}
+                        status={false}
+                        search={(value) => this._search(value)}
+                        ref={'textInput'}
+                    />
+                    <ListView
+                        dataSource={this.ds.cloneWithRows(this.state.data)}
+                        renderRow={(item) => this._renderRow(item)}
+                        showsVerticalScrollIndicator={false}
+                        onEndReached={this._fetchMoreData.bind(this)}
+                        onEndReachedThreshold={50}
+                        automaticallyAdjustContentInsets={false}
+                        renderHeader={this._renderHeader.bind(this)}
+                        renderFooter={this._renderFooter.bind(this)}
+                        enableEmptySections={true}
+                        ref={ref => this._listViewRef = ref}
+                        onScroll={this._onScroll.bind(this)}
+                        refreshControl={
+                            <RefreshControl
+                                refreshing={this.state.refreshing}
+                                onRefresh={this._refresh.bind(this)}
+                                tintColor='#f3916b'
+                                colors={['#f3916b']}
+                            />
+                        }
+                    />
+                    <Toast
+                        ref="toast"
+                        position={'center'}
+                        fadeInDuration={750}
+                        fadeOutDuration={1000}
+                        opacity={0.8}
+                        style={{backgroundColor:'#000000'}}
+                        textStyle={{fontSize:14,color:'#fff'}}
+                    />
+                    <Loading opacity={0.6} show={this.state.isLoading}/>
+                    {
+                        this.state.returnTopStatus ?
+                            <TouchableOpacity onPress={() => this._returnTop()} style={styles.zdBox}>
+                                <Text style={styles.zdBoxFont}>返回</Text>
+                                <Text style={styles.zdBoxFont}>顶部</Text>
+                            </TouchableOpacity>
+                            : null
+                    }
+                </DrawerJsx>
             </View>
         );
     }
     _keyboardDidHideHandler(){
         this.refs['textInput']._textInputBlur();
-    }
-    _isConnected(isConnected){
-        this.setState({isConnected:isConnected});
-    }
-    _refreshNetwork(){
-        networkCheck((isConnected) => {
-            this.setState({isConnected:isConnected});
-        },(isConnected) => {
-            this.setState({isConnected:isConnected});
-        });
     }
     _requestUserBalance(){
         let url = Api.common + Api.category.userBalance;
@@ -187,6 +165,11 @@ class MyLibrary extends Component{
             if(res.code === 0){
                 this.setState({balance: res.data.balance});
             }
+            else{
+                loginTimeout(_ => {
+                    this.props.navigation.navigate("Login");
+                });
+            }
         },err => {
             errorShow(err);
         },headers);
@@ -196,75 +179,88 @@ class MyLibrary extends Component{
             params = "page=" + page + '&category_id=' + cateId + '&status=' + status + '&book_name=' + name + '&limit=8',
             headers = {"SESSION-ID": launchConfig.sessionID};
 
-        Fecth.get(url,params,res => {
-            if(res.code === 0){
-                this.cachedResults.total = res.data.total_records;
-                this.cachedResults.nextPage += 1;
+        networkCheck(() => {
+            Fecth.get(url,params,res => {
+                if(res.code === 0){
+                    this.cachedResults.total = res.data.total_records;
+                    this.cachedResults.nextPage += 1;
 
-                if(dataModel === 'auto'){
-                    let items = this.cachedResults.items.slice();
-                    items = items.concat(res.data.records);
+                    if(dataModel === 'auto'){
+                        let items = this.cachedResults.items.slice();
+                        items = items.concat(res.data.records);
 
-                    this.cachedResults.items = items;
-                    this.setState({data: this.cachedResults.items});
+                        this.cachedResults.items = items;
+                        this.setState({data: this.cachedResults.items});
+                    }
+
+                    if(dataModel === 'other'){
+                        let items = this.cachedResults.items.slice();
+                        items = res.data.records;
+
+                        this.cachedResults.items = items;
+                        this.setState({data: res.data.records});
+                    }
+
+                    this.setState({
+                        isLoadMore: false,
+                        isLoading: false,
+                        refreshing: false,
+                    });
                 }
+                else{
+                    this.setState({
+                        isLoadMore: false,
+                        isLoading: false,
+                        refreshing: false,
+                    });
 
-                if(dataModel === 'other'){
-                    let items = this.cachedResults.items.slice();
-                    items = res.data.records;
-
-                    this.cachedResults.items = items;
-                    this.setState({data: res.data.records});
+                    loginTimeout(_ => {
+                        this.props.navigation.navigate("Login");
+                    });
                 }
-
+            },err => {
                 this.setState({
                     isLoadMore: false,
                     isLoading: false,
                     refreshing: false,
                 });
-            }
-        },err => {
-            this.setState({
-                isLoadMore: false,
-                isLoading: false,
-                refreshing: false,
-            });
-            errorShow(err);
-        },headers);
+
+                errorShow(err);
+            },headers);
+        },() => {
+            this.props.navigation.navigate("NetWork");
+        });
     }
     _closeControlPanel(){
         this.refs['drawer'].closeControlPanel();
     }
     _openControlPanel(){
-        networkCheck((isConnected) => {
+        networkCheck(() => {
             this.balanceTimer = setTimeout(() => {
                 this.refs['drawer'].openControlPanel();
             },250);
 
             this._requestUserBalance();
-            this.setState({isConnected:isConnected});
-        },(isConnected) => {
-            this.setState({isConnected:isConnected});
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _goMyCollect(authorized_key){
-        networkCheck((isConnected) => {
+        networkCheck(() => {
             this.props.navigation.navigate("MyCollect",{
                 authorized_key: authorized_key
             });
-            this.setState({isConnected:isConnected});
-        },(isConnected) => {
-            this.setState({isConnected:isConnected});
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _goMyBookMark(authorized_key){
-        networkCheck((isConnected) => {
+        networkCheck(() => {
             this.props.navigation.navigate("MyBookMark",{
                 authorized_key: authorized_key
             });
-            this.setState({isConnected:isConnected});
-        },(isConnected) => {
-            this.setState({isConnected:isConnected});
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
     _logout(){
@@ -412,10 +408,14 @@ class MyLibrary extends Component{
         );
     }
     _openDetails(hex_id,id){
-        this.props.navigation.navigate("BookDetail",{
-            hex_id: hex_id,
-            id: id,
-            authorized_key: this.user.authorized_key,
+        networkCheck(() => {
+            this.props.navigation.navigate("BookDetail",{
+                hex_id: hex_id,
+                id: id,
+                authorized_key: this.user.authorized_key,
+            });
+        },() => {
+            this.props.navigation.navigate("NetWork");
         });
     }
 }

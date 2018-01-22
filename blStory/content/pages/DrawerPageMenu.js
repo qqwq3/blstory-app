@@ -17,7 +17,7 @@ import RequestImage from '../common/RequestImage';
 import StorageUtil from '../common/StorageUtil';
 import Fecth from '../common/Fecth';
 import { Api } from "../common/Api";
-import { errorShow,networkCheck } from '../common/Util';
+import { errorShow,networkCheck,loginTimeout } from '../common/Util';
 
 class DrawerPageMenu extends React.Component{
     static propTypes = {
@@ -89,34 +89,31 @@ class DrawerPageMenu extends React.Component{
                 this.props.closeDrawer();
             }
             if(this.props.openWay === 'skipClose'){
-                networkCheck((isConnected) => {
+                networkCheck(() => {
                     this.props.onPress(item.router);
-                    this.props.isConnected(isConnected);
-                },(isConnected) => {
-                    this.props.isConnected(isConnected);
+                },() => {
+                    this.props.navigation.navigate("NetWork");
                 });
             }
         }
         // 签到
         else if(index === 1){
             this.props.closeDrawer();
-            networkCheck((isConnected) => {
+            networkCheck(() => {
                 this.props.navigation.navigate("SignIn",{
                     authorized_key:authorized_key
                 });
-                this.props.isConnected(isConnected);
-            },(isConnected) => {
-                this.props.isConnected(isConnected);
+            },() => {
+                this.props.navigation.navigate("NetWork");
             });
         }
         // 图书馆
         else if(index === 2){
             if(this.props.openWay === 'directClose'){
-                networkCheck((isConnected) => {
+                networkCheck(() => {
                     this.props.onPress(item.router);
-                    this.props.isConnected(isConnected);
-                },(isConnected) => {
-                    this.props.isConnected(isConnected);
+                },() => {
+                    this.props.navigation.navigate("NetWork");
                 });
             }
             if(this.props.openWay === 'skipClose'){
@@ -126,23 +123,21 @@ class DrawerPageMenu extends React.Component{
         // 排行榜
         else if(index === 3){
             this.props.closeDrawer();
-            networkCheck((isConnected) => {
+            networkCheck(() => {
                 this.props.onPress(item.router);
-                this.props.isConnected(isConnected);
-            },(isConnected) => {
-                this.props.isConnected(isConnected);
+            },() => {
+                this.props.navigation.navigate("NetWork");
             });
         }
-        // 邀请码
+        // 福利
         else if(index === 4){
             this.props.closeDrawer();
-            networkCheck((isConnected) => {
+            networkCheck(() => {
                 this.props.navigation.navigate("Spread",{
                     authorized_key:authorized_key
                 });
-                this.props.isConnected(isConnected);
-            },(isConnected) => {
-                this.props.isConnected(isConnected);
+            },() => {
+                this.props.navigation.navigate("NetWork");
             });
         }
         // 退出账户
@@ -152,15 +147,21 @@ class DrawerPageMenu extends React.Component{
                 headers = {'SESSION-ID': launchConfig.sessionID};
 
             this.props.closeDrawer();
-            networkCheck((isConnected) => {
+            networkCheck(() => {
                 Fecth.post(url,params,headers,res => {
-                    res.code === 0 && this.props.logout();
+                    if(res.code === 0){
+                        this.props.logout();
+                    }
+                    else{
+                        loginTimeout(_ => {
+                            this.props.navigation.navigate("Login");
+                        });
+                    }
                 },err => {
                     errorShow(err);
                 });
-                this.props.isConnected(isConnected);
-            },(isConnected) => {
-                this.props.isConnected(isConnected);
+            },() => {
+                this.props.navigation.navigate("NetWork");
             });
         }
     }

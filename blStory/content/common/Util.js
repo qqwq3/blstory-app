@@ -11,6 +11,7 @@ import {
     Dimensions,
     Platform,
     Alert,
+    AlertIOS,
     NetInfo,
 } from 'react-native';
 import { Api } from "./Api";
@@ -202,7 +203,7 @@ export function ToUpperCase(str){
 // 网络检测
 export function networkCheck(success: Function,fail: Function){
     NetInfo.isConnected.fetch().done((isConnected) => {
-        isConnected ? (success && success(isConnected)) : (fail && fail(isConnected));
+        isConnected ? (success && success()) : (fail && fail());
     });
 }
 
@@ -232,6 +233,24 @@ export function SameArrElementCount(arrData: Array) {
     return reslut;
 }
 
+// 登录超时处理
+export function loginTimeout(navigate: Function){
+    if(Platform.OS === 'android'){
+        Alert.alert("系统提示","登录超时，请重新登录！",[
+            {
+                text: '确定',onPress: () => navigate && navigate()
+            }
+        ]);
+    }
+
+    if(Platform.OS === 'ios'){
+        AlertIOS.alert("系统提示","登录超时，请重新登录！",[
+            {
+                text: '确定',onPress: () => navigate && navigate()
+            }
+        ]);
+    }
+}
 
 
 
