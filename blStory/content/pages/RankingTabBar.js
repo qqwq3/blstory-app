@@ -7,9 +7,17 @@ import {
     TouchableWithoutFeedback,
     FlatList
 } from 'react-native';
+import PropTypes from 'prop-types';
 import { Devices } from "../common/Api";
 
 class RankingTabBar extends React.Component{
+    static propTypes = {
+        activeTab: PropTypes.number,
+        requestData: PropTypes.func
+    };
+    static defaultProps = {
+        activeTab: 0
+    };
     render(){
         return (
             <View style={styles.tabs}>
@@ -18,7 +26,11 @@ class RankingTabBar extends React.Component{
                     let borderBottomColor = this.props.activeTab === index ? "#f3916b" : "transparent";
 
                     return (
-                        <TouchableWithoutFeedback key={index} onPress={() => this._tabSwifit(index)} style={styles.tab}>
+                        <TouchableWithoutFeedback
+                            key={index}
+                            onPress={() => this._tabSwifit(index)}
+                            style={styles.tab}
+                        >
                             <View style={[styles.tab,{borderBottomWidth:2, borderBottomColor:borderBottomColor}]}>
                                 <Text style={[{color: color},styles.tabText]}>
                                     {text}
@@ -31,7 +43,8 @@ class RankingTabBar extends React.Component{
         );
     }
     _tabSwifit(index){
-        let tabStatusValue = this.props.tabStatusValue;
+        const { tabStatusValue } = this.props;
+
         this.props.requestData(tabStatusValue[index]);
         this.props.goToPage(index);
     }

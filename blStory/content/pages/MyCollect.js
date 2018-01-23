@@ -24,6 +24,7 @@ import Fecth from '../common/Fecth';
 import RequestImage from '../common/RequestImage';
 import Loading from '../common/Loading';
 import { errorShow,loginTimeout,networkCheck } from '../common/Util';
+import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
 
 class MyCollect extends Component{
     constructor(props){
@@ -114,6 +115,7 @@ class MyCollect extends Component{
         let url = Api.common + Api.category.getBookCases,
             params = '?limit=15' + '&page=' + page,
             headers = {'Authorized-Key' : this.authorized_key,"SESSION-ID": launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
             Fecth.get(url,params,res => {
@@ -139,7 +141,7 @@ class MyCollect extends Component{
                     });
 
                     loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
+                        navigate("Login");
                     });
                 }
             },err => {
@@ -186,11 +188,9 @@ class MyCollect extends Component{
         }
 
         return (
-            <ActivityIndicator
-                animating={this.state.animating}
-                style={{height:50,justifyContent:'center',alignItems:'center',backgroundColor:'#fff',marginBottom:-15}}
-                size="small"
-                color='#F8AD54'
+            <FooterLoadActivityIndicator
+                type={'horizontal'}
+                style={{height:50,justifyContent:'center',alignItems:'center'}}
             />
         );
     }

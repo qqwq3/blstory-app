@@ -16,7 +16,6 @@ import {
 import LinearGradient from 'react-native-linear-gradient';
 import Toast from 'react-native-easy-toast';
 import { Devices,Api } from "../common/Api";
-import StorageUtil from '../common/StorageUtil';
 import TextInputModel from '../common/TextInputModel';
 import { ToUpperCase } from '../common/Util';
 import Fecth from '../common/Fecth';
@@ -284,7 +283,7 @@ class Spread extends Component{
     // 复制邀请链接
     _copyInviteLink(uniqueID){
         this._comShareInfo(uniqueID,str => {
-            this.refs['toast'].show('复制成功！',600);
+            this.refs['toast'].show('复制成功',600);
             Clipboard.setString(str);
         });
     }
@@ -302,7 +301,7 @@ class Spread extends Component{
     }
     // 账户编码复制
     _userCodeCopy (code){
-        this.refs['toast'].show('复制成功！',600);
+        this.refs['toast'].show('复制成功',600);
         return Clipboard.setString(code);
     }
     // 兑换
@@ -320,7 +319,7 @@ class Spread extends Component{
     // 提交兑换
     _exchangeSubmit(code){
         let urlSuffix = Api.category.spreadExchange;
-        let successPrompt = '兑换成功！';
+        let successPrompt = '兑换成功';
         let failPrompt = '请输入有效的兑换码';
 
         this._comFunction(code,urlSuffix,successPrompt,failPrompt,() => {
@@ -330,7 +329,7 @@ class Spread extends Component{
     //  提交切换
     _switchSubmit(code){ console.log('switch',code);
         let urlSuffix = Api.category.spreadSwitch;
-        let successPrompt = '切换成功！';
+        let successPrompt = '切换成功';
         let failPrompt = '请输入有效的账户编码';
 
         this._comFunction(code,urlSuffix,successPrompt,failPrompt,() => {

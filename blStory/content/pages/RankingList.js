@@ -11,14 +11,17 @@ import {
     TouchableWithoutFeedback,
     Image,
     FlatList,
+    ActivityIndicator,
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+import PropTypes from 'prop-types';
 import RankingTabBar from './RankingTabBar';
 import { Api,Devices } from "../common/Api";
 import RequestImage from '../common/RequestImage';
 import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
 import { errorShow,loginTimeout,networkCheck } from '../common/Util';
+import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
 
 class RankingList extends Component{
     constructor(props){
@@ -28,31 +31,38 @@ class RankingList extends Component{
             tabStatusValue: ["total_hits","total_likes","total_present_amount","finish"],
             listData: [],
             isLoading: true,
+            switchStatus: false,
         }
     }
     componentWillMount() {
-        let tabStatusValue = this.state.tabStatusValue;
+        const { tabStatusValue } = this.state;
         this._requestData(tabStatusValue[0]);
     }
     render(){
         let tabNames = this.state.tabNames,
             _data = [],
             tabStatusValue = this.state.tabStatusValue;
-        this.state.listData.map((obj,i) => {
+        const { switchStatus,listData } = this.state;
+
+        listData.map((obj,i) => {
             _data.push({key: i,obj: obj});
         });
 
         return (
             <View style={styles.RankingListConent}>
                 <ScrollableTabView
-                    renderTabBar={() => <RankingTabBar
-                        tabStatusValue={tabStatusValue}
-                        requestData={(args) => this._requestData(args)}
-                    />}
+                    renderTabBar={() =>
+                        <RankingTabBar
+                            tabStatusValue={tabStatusValue}
+                            requestData={(args) => this._requestData(args)}
+                        />
+                    }
                     tabBarInactiveTextColor={'#4c4c4c'}
                     tabBarActiveTextColor={'#f3916b'}
                     tabBarBackgroundColor={'#ffffff'}
-                    locked={true}
+                    locked={false}
+                    onChangeTab={this._onChangeTab.bind(this)}
+                    ref={ref => this._scrollableTabViewRef = ref}
                 >
                     {
                         this.state.tabNames.map((name,key) => {
@@ -62,7 +72,7 @@ class RankingList extends Component{
                                         data={_data}
                                         renderItem={this._renderItem}
                                         numColumns={1}
-                                        ListFooterComponent={<RankingListFooter/>}
+                                        ListFooterComponent={<RankingListFooter switchStatus={switchStatus} />}
                                         showsHorizontalScrollIndicator={false}
                                         showsVerticalScrollIndicator={false}
                                     />
@@ -75,10 +85,18 @@ class RankingList extends Component{
             </View>
         );
     }
+    _onChangeTab(){
+        const { tabStatusValue } = this.state;
+        const { currentPage } = this._scrollableTabViewRef.state;
+
+        this.setState({listData: [],switchStatus: true});
+        this._requestData(tabStatusValue[currentPage]);
+    }
     _requestData(args){
         let url = Api.common + Api.category.rankingList,
             params = "?sort_by=" + args,
             headers = {'SESSION-ID': launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
             Fecth.get(url,params,(res) => {
@@ -86,18 +104,24 @@ class RankingList extends Component{
                     this.setState({
                         listData: res.data,
                         isLoading: false,
+                        switchStatus: false,
                     });
                 }
                 else{
                     this.setState({
                         isLoading: false,
+                        switchStatus: false,
                     });
 
                     loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
+                        navigate("Login");
                     });
                 }
             },(err) => {
+                this.setState({
+                    isLoading: false,
+                    switchStatus: false,
+                });
                 errorShow(err);
             },headers);
         },() => {
@@ -166,7 +190,21 @@ class RankingList extends Component{
 
 // 定义一个尾部组件
 class RankingListFooter extends Component{
+    static propTypes = {
+        switchStatus: PropTypes.bool
+    };
+    static defaultProps = {
+        switchStatus: false,
+    };
     render(){
+        const { switchStatus } = this.props;
+
+        if(switchStatus === true){
+            return (
+                <FooterLoadActivityIndicator type={'Vertical'} />
+            );
+        }
+
         return (
             <View style={styles.promptBox}>
                 <Text style={styles.promptText}>没有更多了哦</Text>
@@ -185,13 +223,13 @@ const styles = StyleSheet.create({
         left: 7
     },
     promptBox: {
-        height: 35,
+        height: 45,
         flexDirection: 'row',
         alignItems: 'center',
         justifyContent: "center",
     },
     promptText: {
-        fontSize: 12,
+        fontSize: 14,
         color: '#c4c4c4'
     },
     content: {

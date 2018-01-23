@@ -281,7 +281,7 @@ const styles = StyleSheet.create({
     noPrompt: {
         flexDirection: 'row',
         overflow: 'hidden',
-        height: 40,
+        height: 45,
         justifyContent: 'center'
     },
     noPromptText: {

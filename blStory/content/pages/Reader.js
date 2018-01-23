@@ -99,21 +99,40 @@ class Reader extends React.Component{
             fontColor: this.state.fontColor,
         };
         let { result,currentContent,totalStatus } = this.state;
-        const { navigate } = this.props.navigation;
+        const { navigate,goBack } = this.props.navigation;
+        const { nextHexId } = this.state;
+        let text = (result.text || '暂无'),value = (result.value || 0);
 
         if(totalStatus === true && currentContent.length === 0){
-            Alert.alert('温馨提示',result.text+'，目前剩余'+ result.value +'鹿币。',[
-                {
-                    text: '关闭',onPress:() => {},
-                },
-                {
-                    text:'确定',onPress:() => navigate("Spread",{authorized_key: this.authorized_key })
-                }
-            ]);
+            if(value === 'undefined' && text === 'undefined' && result === {} || totalStatus){
+                Alert.alert('系统提示','由于数据采集原因，本章节暂无相关内容，请直接切换至下一章节哦。',[
+                    {
+                        text:'关闭',onPress:() => {goBack()}
+                    },
+                    {
+                        text:'下一章',onPress:() =>
+                    {
+                        this._nextData(nextHexId,this.book_hex_id,0);
+                    }
+                    }
+                ]);
+            }
+            else{
+                Alert.alert('温馨提示',(value === 0 ?
+                    ('目前剩余'+ value +'鹿币，无法继续阅读哦。去邀请好友可免费继续畅通阅读，同时可获得海量鹿币。') :
+                    (text +'，目前剩余'+ value +'鹿币。去邀请好友可获得更多鹿币。')),[
+                    {
+                        text: '稍后邀请',onPress:() => {goBack()},
+                    },
+                    {
+                        text:'马上邀请',onPress:() => navigate("Spread",{authorized_key: this.authorized_key })
+                    }
+                ]);
+            }
         }
 
         return (
-            this.state.totalStatus === true ? (
+            totalStatus === true ? (
                 <DrawerJsx
                     side="left"
                     open={false}
@@ -219,7 +238,7 @@ class Reader extends React.Component{
                     }
                 </DrawerJsx>
             ) : (
-                <Loading opacity={1} show={this.state.isLoading} />
+                <Loading opacity={0.60} show={this.state.isLoading} />
             )
         );
     }
@@ -290,9 +309,10 @@ class Reader extends React.Component{
         let url = Api.common + Api.category.getChapter,
             params = '?chapter_id=book_id' + hex_id,
             headers = {'SESSION-ID': launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
-            Fecth.get(url,params,res => {
+            Fecth.get(url,params,res => {   console.log('reader',res);
                 if(res.code === 0){
                     this.setState({
                         totalStatus: true,
@@ -317,9 +337,7 @@ class Reader extends React.Component{
                         isLoading: false,
                     });
 
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },err => {
                 this.setState({
@@ -457,7 +475,7 @@ class Reader extends React.Component{
                                                         fontSize:items.fontSize,
                                                         lineHeight:items.lineHeight,
                                                         marginBottom: items.marginBottom,
-                                                        paddingLeft: 8,
+                                                        paddingLeft: 4,
                                                         color: items.fontColor,
                                                     }]}
                                             >

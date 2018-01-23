@@ -15,6 +15,7 @@ import {
     Animated,
     InteractionManager,
 } from 'react-native';
+import LinearGradient from 'react-native-linear-gradient';
 import PropTypes from 'prop-types';
 import Toast from 'react-native-easy-toast';
 import { Api,Devices } from "../common/Api";
@@ -73,7 +74,7 @@ class BookDetail extends Component{
 
             expanded: true,
             animation: new Animated.Value(),
-            MinHeight: 62, // 默认为62，默认值可改动
+            MinHeight: 56, // 默认值可改动
             MaxHeight: 0,
             isShow: false,
 
@@ -152,9 +153,12 @@ class BookDetail extends Component{
                                     </Animated.View>
                                     {
                                         isShow === true && (
-                                            <View style={[styles.arrow]}>
+                                            <LinearGradient
+                                                colors={['rgba(255,255,255,0.55)','rgba(255,255,255,1.0)']}
+                                                style={styles.arrow}
+                                            >
                                                 <Image source={icon} style={{width:12,height:8}} />
-                                            </View>
+                                            </LinearGradient>
                                         )
                                     }
                                 </View>
@@ -575,13 +579,10 @@ const styles = StyleSheet.create({
         flexDirection: 'column'
     },
     AnimatedView: {
-        backgroundColor:'#ffffff',
-        paddingLeft: 15,
-        paddingRight: 15,
+        paddingHorizontal: 15,
     },
     arrow: {
         flexDirection: 'row',
-        backgroundColor: 'rgba(255,255,255,0.7)',
         height: 30,
         marginLeft: 15,
         marginRight: 15,

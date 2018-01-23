@@ -22,6 +22,7 @@ import Fecth from '../common/Fecth';
 import SelectChapterArea from './SelectChapterArea';
 import Icon from '../common/Icon';
 import { errorShow,loginTimeout,networkCheck } from '../common/Util';
+import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
 
 class ReaderCatalogue extends React.Component{
     constructor(props){
@@ -161,12 +162,7 @@ class ReaderCatalogue extends React.Component{
         }
 
         return (
-            <ActivityIndicator
-                animating={this.state.animating}
-                style={{height:40,justifyContent:'center',alignItems:'center'}}
-                size="small"
-                color='#F8AD54'
-            />
+            <FooterLoadActivityIndicator type={'horizontal'}/>
         );
     }
     _fetchMoreData(){

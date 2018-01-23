@@ -23,6 +23,7 @@ import Fecth from '../common/Fecth';
 import Icon from '../common/Icon';
 import RequestImage from '../common/RequestImage';
 import { errorShow,loginTimeout,networkCheck } from '../common/Util';
+import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
 
 class MyBookMark extends Component{
     constructor(props){
@@ -142,35 +143,36 @@ class MyBookMark extends Component{
             book_id_hex = item.book_id_hex;
 
         return (
-            <TouchableOpacity
-                activeOpacity={1}
-                onPress={() => this._continueRead(chapter_id_hex,book_title,book_id_hex)}
-            >
-                <View style={{backgroundColor: '#FFF'}}>
-                    <View style={styles.BookMarkBox}>
-                        <Image style={styles.BookMarkImage} source={{uri:uri}}/>
-                        <View style={styles.BookMarkMassage}>
-                            <Text style={styles.BookMarkTitle} numberOfLines={1}>{item.book_title}</Text>
-                            <View style={[styles.BookMarkNew]}>
-                                <View style={{marginRight: 5}}>
-                                    <Text style={[styles.BookFont,{color:'#F8AD54'}]}>我的进度</Text>
+
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => this._continueRead(chapter_id_hex,book_title,book_id_hex)}
+                >
+                    <View style={{backgroundColor: '#FFF'}}>
+                        <View style={styles.BookMarkBox}>
+                            <Image style={styles.BookMarkImage} source={{uri:uri}}/>
+                            <View style={styles.BookMarkMassage}>
+                                <Text style={styles.BookMarkTitle} numberOfLines={1}>{item.book_title}</Text>
+                                <View style={[styles.BookMarkNew]}>
+                                    <View style={{marginRight: 5}}>
+                                        <Text style={[styles.BookFont,{color:'#F8AD54'}]}>我的进度</Text>
+                                    </View>
+                                    <View style={{maxWidth:195}}>
+                                        <Text style={[styles.BookFont,{color:'#F8AD54'}]} numberOfLines={1}>{item.chapter_title}</Text>
+                                    </View>
                                 </View>
-                                <View style={{maxWidth:195}}>
-                                    <Text style={[styles.BookFont,{color:'#F8AD54'}]} numberOfLines={1}>{item.chapter_title}</Text>
+                                <View style={[styles.BookMarkNew]}>
+                                    <View style={{marginRight: 5}}><Text style={styles.BookFont}>最新章节</Text></View>
+                                    <View style={{maxWidth:195}}><Text style={styles.BookFont} numberOfLines={1}>{item.latest_chapter.title}</Text></View>
                                 </View>
-                            </View>
-                            <View style={[styles.BookMarkNew]}>
-                                <View style={{marginRight: 5}}><Text style={styles.BookFont}>最新章节</Text></View>
-                                <View style={{maxWidth:195}}><Text style={styles.BookFont} numberOfLines={1}>{item.latest_chapter.title}</Text></View>
-                            </View>
-                            <View style={[styles.BookMarkNew]}>
-                                <View style={{marginRight: 5}}><Text style={styles.BookFont}>{item.author_name}</Text></View>
-                                <View><Text style={styles.BookFont}>{item.total_likes}人在阅读</Text></View>
+                                <View style={[styles.BookMarkNew]}>
+                                    <View style={{marginRight: 5}}><Text style={styles.BookFont}>{item.author_name}</Text></View>
+                                    <View><Text style={styles.BookFont}>{item.total_likes}人在阅读</Text></View>
+                                </View>
                             </View>
                         </View>
                     </View>
-                </View>
-            </TouchableOpacity>
+                </TouchableOpacity>
         );
     }
     _continueRead(chapter_id_hex,book_title,book_id_hex){
@@ -211,12 +213,7 @@ class MyBookMark extends Component{
         }
 
         return (
-            <ActivityIndicator
-                animating={this.state.animating}
-                style={{height:40,justifyContent:'center',alignItems:'center'}}
-                size="small"
-                color='#F8AD54'
-            />
+            <FooterLoadActivityIndicator type={'horizontal'}/>
         );
     }
     render(){

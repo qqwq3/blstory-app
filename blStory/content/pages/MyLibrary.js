@@ -26,6 +26,7 @@ import LibrayMenu from './LibraryMenu';
 import RequestImage from '../common/RequestImage';
 import Loading from '../common/Loading';
 import { errorShow,networkCheck,loginTimeout } from '../common/Util';
+import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
 
 class MyLibrary extends Component{
     constructor(props){
@@ -370,12 +371,7 @@ class MyLibrary extends Component{
         }
 
         return (
-            <ActivityIndicator
-                animating={this.state.animating}
-                style={{height:50,justifyContent:'center',alignItems:'center',backgroundColor:'#fff'}}
-                size="small"
-                color='#F8AD54'
-            />
+            <FooterLoadActivityIndicator type={'horizontal'}/>
         );
     }
     _renderRow(item){
