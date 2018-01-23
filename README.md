@@ -21,6 +21,7 @@
 14. 微信组件 [react-native-wechat](https://www.jianshu.com/p/3f424cccb888)
 15. RN路由react-navigation [react-navigation](https://github.com/react-navigation/react-navigation)
 16. 最好用的banner手势滑动 [react-native-swiper](https://github.com/leecade/react-native-swiper)
+17. 友盟 国内专业的移动应用统计凭条 [www.umeng.com](http://www.umeng.com/)
 
 #### 提示
 
