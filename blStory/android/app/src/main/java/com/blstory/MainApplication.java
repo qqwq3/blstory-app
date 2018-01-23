@@ -1,7 +1,6 @@
 package com.blstory;
 
 import android.app.Application;
-
 import com.facebook.react.ReactApplication;
 import com.rnfs.RNFSPackage;
 import com.parryworld.rnappupdate.RNAppUpdatePackage;
@@ -13,6 +12,12 @@ import com.facebook.react.ReactNativeHost;
 import com.facebook.react.ReactPackage;
 import com.facebook.react.shell.MainReactPackage;
 import com.facebook.soloader.SoLoader;
+
+import com.umeng.analytics.MobclickAgent;
+import com.umeng.analytics.MobclickAgent.EScenarioType;
+import com.blstory.umeng.DplusReactPackage;
+import com.blstory.umeng.RNUMConfigure;
+import com.umeng.commonsdk.UMConfigure;
 
 import java.util.Arrays;
 import java.util.List;
@@ -39,6 +44,7 @@ public class MainApplication extends Application implements ReactApplication {
             new RNAppUpdatePackage(),
             new LinearGradientPackage(),
             new RNDeviceInfo(),
+            new DplusReactPackage(),
             new CodePush(getResources().getString(R.string.reactNativeCodePush_androidDeploymentKey), getApplicationContext(), BuildConfig.DEBUG),
             new WeChatPackage()
 
@@ -58,7 +64,17 @@ public class MainApplication extends Application implements ReactApplication {
 
   @Override
   public void onCreate() {
-    super.onCreate();
-    SoLoader.init(this, /* native exopackage */ false);
+      super.onCreate();
+      SoLoader.init(this, /* native exopackage */ false);
+
+      // UMeng: 通过该方法设置组件化的Log是否输出，默认关闭Log输出
+      UMConfigure.setLogEnabled(true);
+
+      //设置统计的场景，以及发送间隔
+      MobclickAgent.setSessionContinueMillis(1000);
+      MobclickAgent.setScenarioType(this, EScenarioType.E_DUM_NORMAL);
+
+      // RN UMeng初始化
+      RNUMConfigure.init(this, "", "", UMConfigure.DEVICE_TYPE_PHONE,"");
   }
 }
