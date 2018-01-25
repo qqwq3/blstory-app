@@ -84,7 +84,7 @@ class Login extends Component{
             </View>
         );
     }
-    _layout = (e) =>{
+    _layout = (e) => {
         const _width = e.nativeEvent.layout.width;
         this.setState({
             left: (Devices.width-_width) / 2,

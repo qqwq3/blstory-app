@@ -65,13 +65,14 @@ class BookDetailComments extends Component{
         let url = Api.common + Api.category.likeComment,
             params = Fecth.dictToFormData({comment_id: id}),
             headers = {'Authorized-Key': authorized_key,'SESSION-ID': launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         let likeCountArr = this.props.likeCountArr;
         let likeCount = this.props.likeCountArr[index] + 1;
         let likeStatus = this.props.likeStatus;
 
         if(likeStatus[index] === true){
-            this.props.toast.show('亲，这条评论你已经点过赞了哦！',600);
+            this.props.toast.show('亲，这条评论你已经点过赞了哦',600);
             return
         }
 
@@ -83,18 +84,16 @@ class BookDetailComments extends Component{
         networkCheck(() => {
             Fecth.post(url,params,headers,res => {
                 if(res.code === 0){
-                    this.props.toast.show('点赞成功！',600);
+                    this.props.toast.show('点赞成功',600);
                 }
                 else{
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },err => {
                 errorShow(err);
             });
         },() => {
-            this.props.navigation.navigate("NetWork");
+            navigate("NetWork");
         });
     }
 }

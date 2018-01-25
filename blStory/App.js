@@ -126,9 +126,13 @@ class App extends Component<{}>{
                     '升级提示',
                     '发现最新包, 你要现在升级吗？',
                     [
-                        {text: '忽略', onPress: () => {
-                            this.setState({checkStatus: false});
-                        }},
+                        {
+                            text:'忽略',onPress: () => {this.setState({checkStatus: false})}
+                        },
+                        // {text: '版本升级', onPress: () => {
+                        //     //this.setState({checkStatus: false});
+                        //     this._checkCodeUpdate();
+                        // }},
                         {text: '升级', onPress: () => needUpdate(true)}
                     ]
                 );
@@ -205,7 +209,7 @@ class App extends Component<{}>{
                 // 非强制更新时，取消按钮文字,默认是ignore
                 optionalIgnoreButtonLabel: '忽略',
                 // 非强制更新时，确认文字. Defaults to “Install”
-                optionalInstallButtonLabel: '安装',
+                optionalInstallButtonLabel: '更新',
                 // 非强制更新时，更新通知. Defaults to “An update is available. Would you like to install it?”.
                 optionalUpdateMessage: '有新版本了，是否更新？',
                 // 要显示的更新通知的标题. Defaults to “Update available”.

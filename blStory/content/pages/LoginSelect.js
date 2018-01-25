@@ -89,7 +89,7 @@ class LoginSelect extends Component{
                     .catch(err => {
                         Alert.alert('登录授权发生错误：', err.message, [
                             {text: '确定'}
-                        ]);
+                    ]);
                 });
             } else {
                 Alert.alert('提示',`请先安装微信软件`,[
