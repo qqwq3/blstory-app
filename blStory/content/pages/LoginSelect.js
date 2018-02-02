@@ -12,6 +12,7 @@ import {
     AlertIOS,
     Platform,
 } from 'react-native';
+import _ from 'lodash';
 import * as wechat from 'react-native-wechat';
 import Fecth from '../common/Fecth';
 import { Api } from "../common/Api";
@@ -30,6 +31,11 @@ class LoginSelect extends Component{
             ],
             user: {},
         }
+    }
+    componentWillMount() {
+        StorageUtil.get('user',res => {
+            this.setState({user: res});
+        });
     }
     render(){
         return (
@@ -75,24 +81,39 @@ class LoginSelect extends Component{
     _wxLogin(){
         let scope = this.props.scope,
             state = this.props.state;
-        let user = this.state.user;
+        let { user } = this.state;
+
+        if(scope === null || state === null){
+            Alert.alert('系统提示','亲，请检查您网络哦！',[
+                {
+                    text: '关闭',
+                }
+            ]);
+            return;
+        }
 
         //判断微信是否安装
         wechat.isWXAppInstalled().then((isInstalled) => {
-            if (isInstalled) {
-                //发送授权请求
-                wechat.sendAuthRequest(scope, state)
-                    .then(responseCode => {
-                        //返回code码，通过code获取access_token
-                        this._getAccessToken(responseCode.code,state);
-                    })
-                    .catch(err => {
-                        Alert.alert('登录授权发生错误：', err.message, [
-                            {text: '确定'}
-                    ]);
-                });
-            } else {
-                Alert.alert('提示',`请先安装微信软件`,[
+            if(isInstalled){
+                if(_.isEmpty(user) === true){
+                    //发送授权请求
+                    wechat.sendAuthRequest(scope, state)
+                        .then(responseCode => {
+                            //返回code码，通过code获取access_token
+                            this._getAccessToken(responseCode.code,state);
+                        })
+                        .catch(err => {
+                            Alert.alert('登录授权发生错误：', err.message, [
+                                {text: '确定'}
+                            ]);
+                        });
+                }
+                else{
+                    this._goHome(user);
+                }
+            }
+            else{
+                Alert.alert('提示',`请先安装或打开微信软件`,[
                     {text: '确定'}
                 ]);
             }
@@ -103,30 +124,36 @@ class LoginSelect extends Component{
             params = JSON.stringify({code:code,state:state}),
             headers = {};
 
-        Fecth.post(url,params,headers,(res) => { //console.log('loginSelect',headers,launchConfig);
+        Fecth.post(url,params,headers,(res) => {
             if(res.code === 0){
+                // 执行本地储存
                 StorageUtil.save("user",res.data,null);
 
-                this.props.navigation.navigate('Home',{
-                    user:{
-                        id: res.data.id,
-                        name: res.data.name,
-                        authorized_key: res.data.authorized_key,
-                        hex_id: res.data.hash_id,
-                    }
-                });
+                // 带参调转首页
+                this._goHome(res.data);
             }
             else{
-                console.log('loginSelect',res);
-
                 Alert.alert('系统提示','系统繁忙，请稍后再试！',[
                     {
                         text: '关闭',
                     }
                 ]);
+                console.log('loginSelect',res);
             }
         },(err) => {
             errorShow(err);
+        });
+    }
+    _goHome(data){
+        const { navigate } = this.props.navigation;
+
+        navigate('Home',{
+            user:{
+                id: data.id,
+                name: data.name,
+                authorized_key: data.authorized_key,
+                hex_id: data.hash_id
+            }
         });
     }
 }

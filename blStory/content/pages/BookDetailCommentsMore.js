@@ -14,6 +14,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
+import ImageLoad from 'react-native-image-placeholder';
 import Loading from '../common/Loading';
 import Icon from '../common/Icon';
 import { Api,Devices } from "../common/Api";
@@ -21,6 +22,7 @@ import Fecth from '../common/Fecth';
 import RequestImage from '../common/RequestImage';
 import DateUtil from '../common/DateUtil';
 import { errorShow,loginTimeout,networkCheck } from '../common/Util';
+import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
 
 class BookDetailCommentsMore extends Component{
     constructor(props){
@@ -34,6 +36,7 @@ class BookDetailCommentsMore extends Component{
 
             likeCountArr: [],
             likeStatus: [],
+            imageLoad: true,
         };
         this.book_id = this.props.navigation.state.params.book_id;
         this.authorized_key = this.props.navigation.state.params.authorized_key;
@@ -44,6 +47,7 @@ class BookDetailCommentsMore extends Component{
         };
         this.likeCountArr = [];
         this.likeStatus = [];
+        this.new_user_uri = '';
     }
     componentWillMount() {
         this._requestData(1);
@@ -52,6 +56,7 @@ class BookDetailCommentsMore extends Component{
         let url = Api.common + Api.category.comments;
         let params = "?book_id=" + this.book_id + '&limit=10' + '&page=' + page;
         let headers = {'SESSION-ID': launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
             Fecth.get(url,params,(res) => {
@@ -81,7 +86,8 @@ class BookDetailCommentsMore extends Component{
                         likeStatus: this.likeStatus,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         isLoading: false,
                         isLoadMore: false,
@@ -89,9 +95,7 @@ class BookDetailCommentsMore extends Component{
                         refreshing: false,
                     });
 
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },(err) => {
                 this.setState({
@@ -104,17 +108,24 @@ class BookDetailCommentsMore extends Component{
                 errorShow(err);
             },headers);
         },() => {
-            this.props.navigation.navigate("NetWork");
+            navigate("NetWork");
         });
     }
     _renderItem({item,index}){
         let o = item.data;
-        let user_uri = RequestImage(o.user_id,'avatar','64x64',false);
+        let uri = RequestImage(o.user_id,'avatar','64x64',false);
+        let time = DateUtil.formatDate(o.time_created*1000,'yyyy-MM-dd');
 
         return (
             <View style={styles.commentsRow}>
                 <View style={styles.comments_left}>
-                    <Image source={{uri:user_uri}} style={{width:30,height:30}} resizeMode={'contain'}/>
+                    <ImageLoad
+                        source={{uri: uri}}
+                        style={{width:30,height:30}}
+                        placeholderSource={Icon.iconCommentAvtarDefault}
+                        isShowActivity={false}
+                        customImagePlaceholderDefaultStyle={{width:30,height:30}}
+                    />
                 </View>
                 <View style={styles.comments_right}>
                     <View style={styles.comments_title}>
@@ -126,7 +137,7 @@ class BookDetailCommentsMore extends Component{
                         </Text>
                         <View style={styles.comments_date_dz}>
                             <View style={styles.comments_date}>
-                                <Text style={{fontSize: 12,color: '#999999'}}>{DateUtil.formatDate(o.time_created*1000,'yyyy-MM-dd')}</Text>
+                                <Text style={{fontSize: 12,color: '#999999'}}>{time}</Text>
                             </View>
                             <TouchableWithoutFeedback onPress={() => this._commentsClick(o.id,index)}>
                                 <View style={styles.comtents_dz}>
@@ -144,7 +155,7 @@ class BookDetailCommentsMore extends Component{
         if(this.cachedResults.items.length === this.cachedResults.total && this.cachedResults.total !== 0){
             return (
                 <View style={{height:50,justifyContent:'center',alignItems:'center'}}>
-                    <Text style={{fontSize: 14,color: '#999999'}}>没有更多了哦</Text>
+                    <Text style={{fontSize: 14,color: '#999999'}}>没有更多评论了哦</Text>
                 </View>
             );
         }
@@ -154,12 +165,7 @@ class BookDetailCommentsMore extends Component{
         }
 
         return (
-            <ActivityIndicator
-                animating={this.state.animating}
-                style={{height:50,justifyContent:'center',alignItems:'center',backgroundColor:'#fff'}}
-                size="small"
-                color='#F8AD54'
-            />
+            <FooterLoadActivityIndicator type={'horizontal'}/>
         );
     }
     _fetchMoreData(){
@@ -189,8 +195,10 @@ class BookDetailCommentsMore extends Component{
         let likeCount = this.state.likeCountArr[index] + 1;
         let likeStatus = this.state.likeStatus;
 
+        const { navigate } = this.props.navigation;
+
         if(likeStatus[index] === true){
-            this.refs.toast.show('亲，这条评论你已经点过赞了哦！',600);
+            this.refs.toast.show('亲，这条评论你已经点过赞了哦',600);
             return
         }
 
@@ -205,18 +213,17 @@ class BookDetailCommentsMore extends Component{
         networkCheck(() => {
             Fecth.post(url,params,headers,res => {
                 if(res.code === 0){
-                    this.refs.toast.show('点赞成功！',600);
+                    this.refs.toast.show('点赞成功',600);
                 }
-                else{
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+
+                if(res.code === 401){
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },err => {
                 errorShow(err);
             });
         },() => {
-            this.props.navigation.navigate("NetWork");
+           navigate("NetWork");
         });
     }
     render(){

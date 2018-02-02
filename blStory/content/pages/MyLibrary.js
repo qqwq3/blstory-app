@@ -17,6 +17,7 @@ import {
     Keyboard,
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
+import ImageLoad from 'react-native-image-placeholder';
 import DrawerJsx from './DrawerJsx';
 import DrawerPageMenu from './DrawerPageMenu';
 import HomeHeader from './HomeHeader';
@@ -25,8 +26,9 @@ import { Api,Devices } from "../common/Api";
 import LibrayMenu from './LibraryMenu';
 import RequestImage from '../common/RequestImage';
 import Loading from '../common/Loading';
-import { errorShow,networkCheck,loginTimeout } from '../common/Util';
+import { errorShow,networkCheck,loginTimeout,ReplaceAll,exitApp } from '../common/Util';
 import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
+import Icon from '../common/Icon';
 
 class MyLibrary extends Component{
     constructor(props){
@@ -73,8 +75,7 @@ class MyLibrary extends Component{
         const { navigate } = this.props.navigation;
         const { isConnected } = this.state;
 
-        let user = this.user,
-            authorized_key = user.authorized_key;
+        let user = this.user;
 
         return (
             <View style={{flex:1}}>
@@ -103,8 +104,8 @@ class MyLibrary extends Component{
                 >
                     <HomeHeader
                         openDrawer={() => this._openControlPanel()}
-                        goMyCollect={() => this._goMyCollect(authorized_key)}
-                        goMyBookMark={() => this._goMyBookMark(authorized_key)}
+                        goMyCollect={() => this._goMyCollect(user)}
+                        goMyBookMark={() => this._goMyBookMark(user)}
                         navigation={this.props.navigation}
                         status={false}
                         search={(value) => this._search(value)}
@@ -166,7 +167,8 @@ class MyLibrary extends Component{
             if(res.code === 0){
                 this.setState({balance: res.data.balance});
             }
-            else{
+
+            if(res.code === 401){
                 loginTimeout(_ => {
                     this.props.navigation.navigate("Login");
                 });
@@ -208,7 +210,8 @@ class MyLibrary extends Component{
                         refreshing: false,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         isLoadMore: false,
                         isLoading: false,
@@ -246,28 +249,29 @@ class MyLibrary extends Component{
             this.props.navigation.navigate("NetWork");
         });
     }
-    _goMyCollect(authorized_key){
+    _goMyCollect(user){
         networkCheck(() => {
             this.props.navigation.navigate("MyCollect",{
-                authorized_key: authorized_key
+                user: user
             });
         },() => {
             this.props.navigation.navigate("NetWork");
         });
     }
-    _goMyBookMark(authorized_key){
+    _goMyBookMark(user){
         networkCheck(() => {
             this.props.navigation.navigate("MyBookMark",{
-                authorized_key: authorized_key
+                user: user
             });
         },() => {
             this.props.navigation.navigate("NetWork");
         });
     }
     _logout(){
-        this.refs.toast.show('退出成功！',600);
+        this.refs.toast.show('退出成功',600);
         this.timer = setTimeout(() => {
-            this.props.navigation.navigate('Login');
+            //this.props.navigation.navigate('Login');
+            exitApp();
         },600);
     }
     _onScroll(e){
@@ -376,6 +380,9 @@ class MyLibrary extends Component{
     }
     _renderRow(item){
         let uri = RequestImage(item.id);
+        let title = ReplaceAll(ReplaceAll(item.title,'<span class="highlight">',''),'</span>','');
+        let latestChapterTitle = ReplaceAll(ReplaceAll(item.latest_chapter.title,'<span class="highlight">',''),'</span>','');;
+        let anthorName = ReplaceAll(ReplaceAll(item.author.name,'<span class="highlight">',''),'</span>','');
 
         return (
             <TouchableOpacity
@@ -384,17 +391,24 @@ class MyLibrary extends Component{
             >
                 <View style={{backgroundColor: '#FFF'}}>
                     <View style={[styles.BookMarkBox,styles.menuInnerBottomBorder]}>
-                        <Image style={styles.BookMarkImage} source={{uri:uri}}/>
+                        <ImageLoad
+                            source={{uri:uri}}
+                            style={styles.BookMarkImage}
+                            isShowActivity={false}
+                            customImagePlaceholderDefaultStyle={styles.BookMarkImage}
+                            placeholderSource={Icon.iconBookDefaultBig}
+                            borderRadius={2}
+                        />
                         <View style={styles.BookMarkMassage}>
-                            <Text style={styles.BookMarkTitle} numberOfLines={1}>{item.title}</Text>
+                            <Text style={styles.BookMarkTitle} numberOfLines={1}>{title}</Text>
                             <View style={[styles.BookMarkNew]}>
                                 <View style={{marginRight: 5}}><Text style={styles.BookFont}>最新章节</Text></View>
                                 <View style={{maxWidth:193}}>
-                                    <Text style={styles.BookFont} numberOfLines={1}>{item.latest_chapter.title}</Text>
+                                    <Text style={styles.BookFont} numberOfLines={1}>{latestChapterTitle}</Text>
                                 </View>
                             </View>
                             <View style={[styles.BookMarkNew]}>
-                                <View style={{marginRight: 5}}><Text style={styles.BookFont}>{item.author.name}</Text></View>
+                                <View style={{marginRight: 5}}><Text style={styles.BookFont}>{anthorName}</Text></View>
                                 <View><Text style={styles.BookFont}>{item.total_likes}人在阅读</Text></View>
                             </View>
                         </View>
@@ -419,9 +433,12 @@ class MyLibrary extends Component{
 export default MyLibrary;
 
 const styles = StyleSheet.create({
+    highlight:{
+        color: '#f3916b',
+    },
     zdBoxFont:{
         fontSize:12,
-        color:'#fff',
+        color:'#ffffff',
     },
     zdBox:{
         position: 'absolute',

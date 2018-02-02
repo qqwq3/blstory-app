@@ -12,12 +12,14 @@ import {
     Alert,
 } from 'react-native';
 import PropTypes from 'prop-types';
+import ImageLoad from 'react-native-image-placeholder';
 import { drawerMenu } from '../common/Api';
 import RequestImage from '../common/RequestImage';
 import StorageUtil from '../common/StorageUtil';
 import Fecth from '../common/Fecth';
 import { Api } from "../common/Api";
 import { errorShow,networkCheck,loginTimeout } from '../common/Util';
+import Icon from '../common/Icon';
 
 class DrawerPageMenu extends React.Component{
     static propTypes = {
@@ -50,7 +52,14 @@ class DrawerPageMenu extends React.Component{
             <View style={styles.drawerContainer}>
                 <View style={styles.drawerCHeader}>
                     <View style={styles.drawerPic}>
-                        <Image source={{uri:userImg}} resizeMode={'contain'} style={styles.drawerImage} />
+                        <ImageLoad
+                            source={{uri:userImg}}
+                            style={styles.drawerImage}
+                            borderRadius={50}
+                            customImagePlaceholderDefaultStyle={styles.drawerImage}
+                            isShowActivity={false}
+                            placeholderSource={Icon.iconCommentAvtarDefault}
+                        />
                     </View>
                     <View style={[styles.drawerName,{paddingVertical:6}]}>
                         <Text style={styles.drawerNameText} numberOfLines={1}>{userName}</Text>
@@ -140,11 +149,12 @@ class DrawerPageMenu extends React.Component{
                 this.props.navigation.navigate("NetWork");
             });
         }
-        // 退出账户
+        // 退出
         else if(index === 5){
             let url = Api.common + Api.category.logout,
                 params = Fecth.dictToFormData({}),
                 headers = {'SESSION-ID': launchConfig.sessionID};
+            const { navigate } = this.props.navigation;
 
             this.props.closeDrawer();
             networkCheck(() => {
@@ -152,16 +162,14 @@ class DrawerPageMenu extends React.Component{
                     if(res.code === 0){
                         this.props.logout();
                     }
-                    else{
-                        loginTimeout(_ => {
-                            this.props.navigation.navigate("Login");
-                        });
+                    else if(res.code === 401){
+                        loginTimeout(_ => {navigate("Login")});
                     }
                 },err => {
                     errorShow(err);
                 });
             },() => {
-                this.props.navigation.navigate("NetWork");
+                navigate("NetWork");
             });
         }
     }
@@ -220,8 +228,7 @@ const styles = StyleSheet.create({
     },
     drawerImage: {
         width: 50,
-        height: 50,
-        resizeMode: 'contain'
+        height: 50
     },
     drawerName: {
         flex: 1,

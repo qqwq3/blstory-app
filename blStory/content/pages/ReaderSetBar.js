@@ -8,6 +8,7 @@ import {
     Image,
     FlatList,
     TextInput,
+    Modal
 } from 'react-native';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
@@ -229,48 +230,63 @@ class CommentSetBar extends React.Component{
         sendComments: PropTypes.func,
         changeText: PropTypes.func,
         focuStatus: PropTypes.bool,
+        closeModal: PropTypes.func,
+        transparent: PropTypes.bool,
+        visible: PropTypes.bool,
+        animationType: PropTypes.string
     };
     static defaultProps = {
         focuStatus: false,
         opacity: 0.60,
+        animationType: 'slide'
     };
     render(){
         return (
-            <TouchableOpacity
-                activeOpacity={1}
-                style={[styles.commontsContent,{backgroundColor: 'rgba(0,0,0,'+this.props.opacity+')'}]}
-                onPress={() => this.props.closeComments()}
+            <Modal
+                visible={this.props.visible}
+                animationType={this.props.animationType}
+                onRequestClose={() => this.props.closeModal()}
+                transparent={this.props.transparent}
             >
-                <View style={styles.commentsBox}>
-                    <TouchableOpacity
-                        accessible={true}
-                        activeOpacity={1}
-                        style={styles.commentsCommit}
-                        onPress={() => this.props.sendComments()}
-                    >
-                        <Text style={{fontSize:15,color:'#808080'}}>发送</Text>
-                    </TouchableOpacity>
-                    <View style={styles.commentsContent}>
-                        <TextInput
-                            style={styles.commentsTextInput}
-                            multiline={true}
-                            editable={true}
-                            autoFocus={this.props.focuStatus}
-                            autoCapitalize={'none'}
-                            placeholder={'写出战胜作者的评论吧~'}
-                            placeholderTextColor={'#cccccc'}
-                            underlineColorAndroid={'transparent'}
-                            onChangeText={(e) => this.props.changeText(e)}
-                            ref={ref => this._textInput = ref}
-                            keyboardType={'ascii-capable'}
-                        />
+                <TouchableOpacity
+                    activeOpacity={1}
+                    style={[styles.commontsContent,{backgroundColor: 'rgba(0,0,0,'+this.props.opacity+')'}]}
+                    onPress={() => this.props.closeComments()}
+                >
+                    <View style={styles.commentsBox}>
+                        <TouchableOpacity
+                            accessible={true}
+                            activeOpacity={1}
+                            style={styles.commentsCommit}
+                            onPress={() => this.props.sendComments()}
+                        >
+                            <Text style={{fontSize:15,color:'#808080'}}>发送</Text>
+                        </TouchableOpacity>
+                        <View style={styles.commentsContent}>
+                            <TextInput
+                                style={styles.commentsTextInput}
+                                multiline={true}
+                                editable={true}
+                                autoFocus={this.props.focuStatus}
+                                autoCapitalize={'none'}
+                                placeholder={'写出战胜作者的评论吧~'}
+                                placeholderTextColor={'#cccccc'}
+                                underlineColorAndroid={'transparent'}
+                                onChangeText={(e) => this.props.changeText(e)}
+                                ref={ref => this._textInput = ref}
+                                keyboardType={'ascii-capable'}
+                            />
+                        </View>
                     </View>
-                </View>
-            </TouchableOpacity>
+                </TouchableOpacity>
+            </Modal>
         );
     }
     _textInputBlur(){
         return this._textInput.blur();
+    }
+    _textInputClear(){
+        return this._textInput.clear();
     }
 }
 

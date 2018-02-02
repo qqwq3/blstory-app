@@ -17,6 +17,7 @@ import {
 } from 'react-native';
 import _ from 'lodash';
 import Toast from 'react-native-easy-toast';
+import ImageLoad from 'react-native-image-placeholder';
 import PropTypes from 'prop-types';
 import Icon from "../common/Icon";
 import { Devices,Api } from "../common/Api";
@@ -36,11 +37,11 @@ class MyCollect extends Component{
             itemStatus: true,
 
             allStatus: 'close',
-            iconStatus: true,
-            selectedStatusCount: 0,
+            iconStatus: false,
             indexArr: [],
         };
-        this.authorized_key = this.props.navigation.state.params.authorized_key;
+        this.user = this.props.navigation.state.params.user;
+        this.authorized_key = this.user.authorized_key;
         this.cacheReults = {
             nextPage: 1,
             total: 0,
@@ -49,8 +50,9 @@ class MyCollect extends Component{
         this.bookIdCollection = [];
         this.bookIds = '';
         this.indexArr = [];
+        this.iconStatusCollection = [];
     }
-    componentWillMount() {;
+    componentWillMount() {
         this._requestData(1);
     }
     render(){
@@ -119,10 +121,18 @@ class MyCollect extends Component{
 
         networkCheck(() => {
             Fecth.get(url,params,res => {
+                // 请求成功
                 if(res.code === 0){
                     let items = this.cacheReults.items.slice();
+                    let iconStatusCollection = this.iconStatusCollection.slice();
+
+                    res.data.records.map(() => {
+                        iconStatusCollection = iconStatusCollection.concat('select');
+                    });
+
                     items = items.concat(res.data.records);
 
+                    this.iconStatusCollection = iconStatusCollection;
                     this.cacheReults.items = items;
                     this.cacheReults.total = res.data.total_records;
                     this.cacheReults.nextPage += 1;
@@ -133,7 +143,18 @@ class MyCollect extends Component{
                         itemStatus: true,
                     });
                 }
-                else{
+
+                // 无数据
+                if(res.code === 404){
+                    this.setState({
+                        isLoadMore: false,
+                        isLoading: false,
+                        itemStatus: false,
+                    });
+                }
+
+                // 登录超时
+                if(res.code === 401){
                     this.setState({
                         isLoadMore: false,
                         isLoading: false,
@@ -163,16 +184,41 @@ class MyCollect extends Component{
                 {...item.data}
                 index={index}
                 navigation={this.props.navigation}
-                selected={(value) => this._selected(value)}
                 bookId={(book_id,value) => this._bookId(book_id,value)}
                 bookIndex={(index,status) => this._bookIndex(index,status)}
                 iconStatus={this.state.iconStatus}
                 authorized_key={this.authorized_key}
+                iconStatusCollection={this.iconStatusCollection}
             />
         );
     }
     _bookIndex(index,status){
-        status === 'selected' && this.indexArr.push(index);
+        if(status === 'selected'){
+            this.indexArr.push(index);
+            this.iconStatusCollection[index] = status;
+        }
+
+        if(status === 'select'){
+            let new_indexArr = this.indexArr.filter(function(x){
+                return x !== index
+            });
+
+            this.indexArr = new_indexArr;
+            this.iconStatusCollection[index] = status;
+        }
+
+        if(this.indexArr.length === 0){
+            this.setState({
+                iconStatus: false,
+                allStatus: 'close',
+            });
+        }
+        else{
+            this.setState({
+                iconStatus: true,
+                allStatus: 'open',
+            });
+        }
     }
     _listFooterComponent(){
         if(this.cacheReults.items.length === this.cacheReults.total && this.cacheReults.total !== 0){
@@ -209,40 +255,41 @@ class MyCollect extends Component{
         let url = Api.common + Api.category.bookCasesBatchDel,
             params = Fecth.dictToFormData({book_ids: this.bookIds}),
             headers = {'Authorized-Key': authorized_key,"SESSION-ID": launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         let data = this.state.data;
         let newIndexArr = _.uniq(this.indexArr);
 
         _.pullAt(data,newIndexArr);
-
-        this.setState({
-            data: data,
-            allStatus: 'close',
-            iconStatus: false,
-            selectedStatusCount: 0,
-            isLoadMore: false,
-        });
-        this.cacheReults.items = [];
-        this.cacheReults.nextPage = 1;
-        this.cacheReults.total = 0;
+        _.pullAt(this.iconStatusCollection,newIndexArr);
 
         networkCheck(() => {
             Fecth.post(url,params,headers,(res) => {
                 if(res.code === 0){
-                    this.refs.toast.show('删除成功！',600);
+                    this.refs.toast.show('删除成功',600);
+                    this.setState({
+                        data: data,
+                        allStatus: 'close',
+                        iconStatus: false,
+                        isLoadMore: false,
+                    });
+                    this.cacheReults.items = [];
+                    this.cacheReults.nextPage = 1;
+                    this.cacheReults.total = 0;
+                    this.bookIdCollection = [];
+                    this.bookIds = '';
+                    this.indexArr = [];
+                    this.iconStatusCollection = [];
                     this._requestData(1);
                 }
-                else{
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+
+                if(res.code === 401){
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },(err) => {
                 errorShow(err);
             });
-        },() => {
-            this.props.navigation.navigate("NetWork");
-        });
+        },() => {navigate("NetWork")});
     }
     _bookId(book_id,value){
         // 数组追加
@@ -268,30 +315,6 @@ class MyCollect extends Component{
             this.bookIds = strId;
         }
     }
-    _selected(value){
-        if(value === 'selected'){
-            this.setState({
-                selectedStatusCount:this.state.selectedStatusCount+1,
-                allStatus: 'open',
-            });
-        }
-
-        if(value === 'select'){
-            this.setState({
-                selectedStatusCount:this.state.selectedStatusCount-1,
-            });
-        }
-
-        if(this.state.selectedStatusCount === 1){
-            if(value === 'selected'){
-                this.setState({allStatus: 'open'});
-            }
-            else{
-                this.setState({allStatus: 'close'});
-            }
-        }
-        this.setState({iconStatus: true});
-    }
 }
 
 // 定义一个Books组件
@@ -303,36 +326,40 @@ class Books extends Component{
         book_title: PropTypes.string,
         authorized_key: PropTypes.string,
         bookId: PropTypes.func,
-        selected: PropTypes.func,
         navigation: PropTypes.object,
         bookIndex: PropTypes.func,
         index: PropTypes.number,
     };
     constructor(props){
         super(props);
-        this.state = {
-            selected: 'select',
-        };
     }
     render(){
-        let uri = RequestImage(this.props.book_id),
-            book_id = this.props.book_id,
-            book_id_hex = this.props.book_id_hex;
+        let uri = RequestImage(this.props.book_id);
+        let { index,iconStatusCollection,iconStatus } = this.props;
 
         return (
             <TouchableWithoutFeedback
-                onPress={() => this._onPress(book_id,book_id_hex)}
-                onLongPress={() => this._onLongPress(book_id,book_id_hex)}
+                onPress={this._openDetails.bind(this)}
+                onLongPress={this._onLongPress.bind(this)}
             >
                 <View style={styles.CollectBox}>
                     <View style={styles.CollectSubBox}>
-                        {this.state.selected === 'selected' ? (
-                            this.props.iconStatus ? (<View style={styles.CollectBookSelect}>
-                                <Image source={Icon.iconBookSelect} style={styles.CollectBookSelectIcon}/>
-                            </View>) : null
-                        ) : null}
+                        {
+                            iconStatusCollection[index] === 'selected' &&
+                            iconStatus &&
+                                <TouchableOpacity activeOpacity={1} onPress={this._onPress.bind(this)} style={styles.CollectBookSelect}>
+                                    <Image source={Icon.iconBookSelect} style={styles.CollectBookSelectIcon}/>
+                                </TouchableOpacity>
+                        }
                         <View style={{maxWidth: 75,overflow: 'hidden',}}>
-                            <Image source={{uri:uri}} style={styles.CollectImage} />
+                            <ImageLoad
+                                source={{uri: uri}}
+                                style={styles.CollectImage}
+                                customImagePlaceholderDefaultStyle={styles.CollectImage}
+                                placeholderSource={Icon.iconBookDefaultBig}
+                                isShowActivity={false}
+                                borderRadius={2}
+                            />
                             <Text style={styles.CollectBookTitle} numberOfLines={1}>{this.props.book_title}</Text>
                         </View>
                     </View>
@@ -340,22 +367,30 @@ class Books extends Component{
             </TouchableWithoutFeedback>
         );
     }
-    _onPress(book_id,book_id_hex){
+    _openDetails(){
         let authorized_key = this.props.authorized_key;
+        const { navigate } = this.props.navigation;
+        let { index,iconStatusCollection,book_id,book_id_hex } = this.props;
 
-        this.setState({selected: 'select'});
-        this.props.bookId(book_id_hex,"select");
-        this.state.selected === 'select' ? this.props.navigation.navigate('BookDetail',{
-            hex_id: book_id_hex,
-            id: book_id,
-            authorized_key: authorized_key,
-        }) : this.props.selected("select");
+        if(iconStatusCollection[index] === 'select'){
+            navigate('BookDetail',{
+                hex_id: book_id_hex,
+                id: book_id,
+                authorized_key: authorized_key
+            });
+        }
     }
-    _onLongPress(book_id,book_id_hex){
-        this.setState({selected: 'selected'});
-        this.props.selected("selected");
-        this.props.bookId(book_id_hex,"selected");
-        this.props.bookIndex(this.props.index,this.state.selected);
+    _onPress(){
+        let { bookId,bookIndex,index,book_id_hex } = this.props;
+
+        bookId(book_id_hex,"select");
+        bookIndex(index,"select");
+    }
+    _onLongPress(){
+        let { bookId,bookIndex,index,book_id_hex } = this.props;
+
+        bookId(book_id_hex,"selected");
+        bookIndex(index,"selected");
     }
 }
 
@@ -400,20 +435,21 @@ const styles = StyleSheet.create({
         justifyContent: 'flex-end'
     },
     CollectBookSelect: {
-        width: 18,
-        height: 18,
-        borderRadius: 18,
         position: 'absolute',
-        right: 0,
+        right: 6,
+        top: 6,
         zIndex:2000,
-        marginTop: 9,
-        marginRight: 9,
         justifyContent: 'center',
-        flexDirection: 'row'
+        flexDirection: 'row',
+        width: 94,
+        height: 104,
     },
     CollectBookSelectIcon: {
         width: 18,
-        height: 18
+        height: 18,
+        position: 'absolute',
+        right: 3,
+        top: 3
     },
     CollectBooksDel: {
         backgroundColor: '#F8525A',
@@ -441,6 +477,8 @@ const styles = StyleSheet.create({
         height: 95,
         borderRadius: 2,
         overflow: 'hidden',
+        borderWidth: 0.25,
+        borderColor: '#ccc'
     },
     CollectSubBox: {
         alignSelf: 'center',

@@ -53,7 +53,8 @@ class Spread extends Component{
                         isLoading: false,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         isLoading: false,
                     });

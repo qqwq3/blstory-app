@@ -38,6 +38,9 @@ const Icon = {
     iconGestureNextPage: require('../images/gesture_next_page.png'),
     iconGesturePreviewPage: require('../images/gesture_preview_page.png'),
     iconInviteCode: require("../images/icon_invite_code.png"),
+    iconBookDefaultBig: require('../images/book_defaut_big.png'),
+    iconBookDefaultSmall: require('../images/book_defaut_small.png'),
+    iconCommentAvtarDefault: require('../images/comment_avtar_default.png')
 };
 
 export default Icon;

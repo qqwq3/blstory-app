@@ -15,12 +15,14 @@ import {
     NetInfo,
 } from 'react-native';
 import _ from 'lodash';
+import ImageLoad from 'react-native-image-placeholder';
 import RequestImage from '../common/RequestImage';
 import HomeMenu from './HomeMenu';
 import { Api , Devices } from '../common/Api';
 import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
 import { errorShow,networkCheck,loginTimeout } from '../common/Util';
+import Icon from '../common/Icon';
 
 // 装饰点的颜色取值合集
 const dotColor = {
@@ -73,7 +75,8 @@ class HomeContent extends Component{
                         isLoading: false,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         refreshing: false,
                         isLoading: false,
@@ -115,6 +118,8 @@ class HomeContent extends Component{
         });
 
         return (
+        // 临时隐藏免费专区，因为目前全都是免费的。
+        obj.title !== '免费专区' &&
             <View style={styles.box}>
                 <View style={styles.boxHeader}>
                     <View style={[styles.boxBlodDot,{backgroundColor:dotColor.red}]}>
@@ -133,7 +138,14 @@ class HomeContent extends Component{
                 >
                     <View style={styles.boxBody}>
                         <View style={[styles.bookBox,styles.bookBoxWH]}>
-                            <Image source={{uri:img[0]}} style={[styles.bookBoxWH,{borderRadius:2}]}/>
+                            <ImageLoad
+                                source={{uri:img[0]}}
+                                style={[styles.bookBoxWH,{borderRadius:2}]}
+                                customImagePlaceholderDefaultStyle={[styles.bookBoxWH,{borderRadius:2}]}
+                                isShowActivity={false}
+                                placeholderSource={Icon.iconBookDefaultBig}
+                                borderRadius={2}
+                            />
                         </View>
                         <View style={styles.bookSection}>
                             <Text style={styles.bookSectionTitle}>{obj.books[0].title}</Text>
@@ -178,7 +190,14 @@ class HomeContent extends Component{
             <TouchableWithoutFeedback onPress={() => this._openDetails(obj.hex_id,obj.id)}>
                 <View style={styles.boxFooterLump}>
                     <View style={styles.bookSmallView}>
-                        <Image source={{uri:img}} style={[styles.bookSmall,{borderRadius:2}]}/>
+                        <ImageLoad
+                            source={{uri:img}}
+                            style={[styles.bookSmall,{borderRadius:2}]}
+                            customImagePlaceholderDefaultStyle={[styles.bookSmall,{borderRadius:2}]}
+                            isShowActivity={false}
+                            placeholderSource={Icon.iconBookDefaultSmall}
+                            borderRadius={2}
+                        />
                     </View>
                     <Text style={styles.boxFooterText} numberOfLines={1}>{obj.title}</Text>
                 </View>
@@ -205,7 +224,8 @@ class HomeContent extends Component{
                         isLoading: false,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         menuStyleListenr: false,
                         isLoading: false,
@@ -334,15 +354,19 @@ const styles = StyleSheet.create({
         borderBottomColor: '#E5E5E5'
     },
     bookBox: {
-        elevation: 3,
-        shadowColor: '#FBFBFB',
-        shadowOffset: {width: 4,height: 3},
-        shadowOpacity: 0.6,
+        //elevation: 3,
+        //shadowColor: '#FBFBFB',
+        //shadowOffset: {width: 4,height: 3},
+        //shadowOpacity: 0.6,
         flexDirection: 'row',
     },
     bookBoxWH: {
         width: 75,
-        height: 95
+        height: 95,
+        borderWidth: 0.25,
+        borderColor: '#ccc',
+        borderRadius: 2,
+        overflow: 'hidden'
     },
     bookSection: {
         paddingLeft: 15,
@@ -377,13 +401,15 @@ const styles = StyleSheet.create({
         width: 60,
         height: 76,
         borderRadius: 2,
-        alignSelf: 'center'
+        alignSelf: 'center',
+        borderWidth: 0.25,
+        borderColor: '#ccc'
     },
     bookSmallView:{
-        elevation: 3,
-        shadowOpacity:0.75,
-        shadowColor: "#e5e5e5",
-        shadowOffset: {width:4,height:3},
+        //elevation: 3,
+        //shadowOpacity:0.75,
+        //shadowColor: "#e5e5e5",
+        //shadowOffset: {width:4,height:3},
     },
     boxFooterText: {
         fontSize: 12,

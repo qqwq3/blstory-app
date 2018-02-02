@@ -6,7 +6,7 @@ import {
     View,
 } from 'react-native';
 import { StackNavigator, NavigationActions } from 'react-navigation';
-//import CardStackStyleInterpolator from 'react-navigation/src/views/CardStackStyleInterpolator';
+import CardStackStyleInterpolator from 'react-navigation/src/views/CardStack/CardStackStyleInterpolator';
 import HeaderReturn from './HeaderReturn';
 import Home from './Home';
 import MyCollect from './MyCollect';
@@ -26,9 +26,10 @@ import NetWork from './NetWork';
 const RouterConfig = {
     //登录
     Login: {
-      screen:   Login,
+      screen: Login,
         navigationOptions: ({navigation}) => ({
             header: null,
+            gesturesEnabled: false
         })
     },
     // 首页
@@ -36,48 +37,60 @@ const RouterConfig = {
         screen: Home,
         navigationOptions: ({navigation}) => ({
             header: null,
+            gesturesEnabled: false,
         }),
     },
     // 我的收藏
     MyCollect: {
         screen: MyCollect,
         navigationOptions: ({navigation}) => ({
-            header: (<HeaderReturn title={'我的收藏'} onPress={() => navigation.goBack()}/>)
+            header: (<HeaderReturn title={'我的收藏'} onPress={() => navigation.goBack()}/>),
+            gesturesEnabled: false
         })
     },
     // 我的书签
     MyBookMark: {
         screen: MyBookMark,
         navigationOptions: ({navigation}) => ({
-            header: (<HeaderReturn title={'我的书签'} onPress={() => navigation.goBack()}/>)
+            header: (
+                <HeaderReturn
+                    title={'我的书签'}
+                    onPress={() => navigation.goBack()}
+                />
+            ),
+            gesturesEnabled: false
         })
     },
     // 我的书库
     MyLibrary: {
         screen: MyLibrary,
         navigationOptions: ({navigation}) => ({
-            header: null
+            header: null,
+            gesturesEnabled: false
         })
     },
     // 排行榜
     RankingList: {
         screen: RankingList,
         navigationOptions: ({navigation}) => ({
-            header: (<HeaderReturn title={'排行榜'} onPress={() => navigation.goBack()}/>)
+            header: (<HeaderReturn title={'排行榜'} onPress={() => navigation.goBack()}/>),
+            gesturesEnabled: false
         })
     },
     // 书详情
     BookDetail: {
         screen: BookDetail,
         navigationOptions: ({navigation}) => ({
-            header: (<HeaderReturn title={'书籍详情'} onPress={() => navigation.goBack()}/>)
+            header: (<HeaderReturn title={'书籍详情'} onPress={() => navigation.goBack()}/>),
+            gesturesEnabled: false
         })
     },
     // 书详情里面的章节
     BookDetailCatalog: {
         screen: BookDetailCatalog,
         navigationOptions: ({navigation}) => ({
-            header: (<HeaderReturn title={'目录'} onPress={() => navigation.goBack()}/>)
+            header: (<HeaderReturn title={'目录'} onPress={() => navigation.goBack()}/>),
+            gesturesEnabled: false
         })
     },
     // 签到
@@ -85,20 +98,23 @@ const RouterConfig = {
         screen: SignIn,
         navigationOptions: ({navigation}) => ({
             header: null,
+            gesturesEnabled: false
         })
     },
     // 阅读
     Reader: {
-      screen: Reader,
-      navigationOptions: ({navigation}) => ({
-         header: null,
-      })
+        screen: Reader,
+        navigationOptions: ({navigation}) => ({
+            header: null,
+            gesturesEnabled: false
+        })
     },
     // 跟多评论
     BookDetailCommentsMore: {
         screen: BookDetailCommentsMore,
         navigationOptions: ({navigation}) => ({
-            header: (<HeaderReturn title={'更多评论'} onPress={() => navigation.goBack()}/>)
+            header: (<HeaderReturn title={'更多评论'} onPress={() => navigation.goBack()}/>),
+            gesturesEnabled: false
         })
     },
     // 分享推广
@@ -115,6 +131,7 @@ const RouterConfig = {
                     borderBottomColor={'#ffffff'}
                 />
             ),
+            gesturesEnabled: false
         })
     },
     // 无网络
@@ -129,6 +146,7 @@ const RouterConfig = {
                     bottomBorder={true}
                 />
             ),
+            gesturesEnabled: false
         })
     }
 };
@@ -137,7 +155,11 @@ const StackNavigatorConfig = {
     mode: 'card',
     headerMode: 'screen',
     initialRouteName: 'Login',
+    initialRouteParams: {},
     path: '/',
+    transitionConfig:()=>({
+        screenInterpolator: CardStackStyleInterpolator.forHorizontal
+    })
 };
 
 const Router = StackNavigator(RouterConfig,StackNavigatorConfig);

@@ -66,6 +66,8 @@ class App extends Component<{}>{
             isIOS: Platform.OS === 'ios',
             // app当前版本
             appVersion: DeviceInfo.getVersion() || '0.0.1',
+            // nav
+            navigator: this.navigator || {},
         };
 
         // app版本更新
@@ -320,7 +322,7 @@ class App extends Component<{}>{
 
         return (
             <View style={{flex:1}}>
-                <Router/>
+                <Router ref={nav => this.navigator = nav}/>
                 <Toast
                     ref="toast"
                     position={'center'}

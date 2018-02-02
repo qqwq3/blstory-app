@@ -16,6 +16,7 @@ import {
     InteractionManager,
 } from 'react-native';
 import LinearGradient from 'react-native-linear-gradient';
+import ImageLoad from 'react-native-image-placeholder';
 import PropTypes from 'prop-types';
 import Toast from 'react-native-easy-toast';
 import { Api,Devices } from "../common/Api";
@@ -74,7 +75,7 @@ class BookDetail extends Component{
 
             expanded: true,
             animation: new Animated.Value(),
-            MinHeight: 56, // 默认值可改动
+            MinHeight: 58, // 默认值可改动
             MaxHeight: 0,
             isShow: false,
 
@@ -85,6 +86,7 @@ class BookDetail extends Component{
             likeCountArr: [],
             likeStatus: [],
             isConnected: true,
+            guessLikeStatus: false
         };
         this.icons = {
             'up': Icon.iconGrayArrowTop,
@@ -94,19 +96,19 @@ class BookDetail extends Component{
         this.likeStatus = [];
     }
     componentWillMount() {
-        //InteractionManager.runAfterInteractions(() => {
-            this._requestData(this.state.id,this.state.hex_id);
-            this._bookCaseExists(this.state.id,this.state.hex_id);
-            this._requestCommets(this.state.id);
-        //});
+        this._requestData(this.state.id,this.state.hex_id);
+        this._bookCaseExists(this.state.id,this.state.hex_id);
+        this._requestCommets(this.state.id);
     }
     componentDidMount() {
-        this.state.animation.setValue(this.state.MinHeight);
+        const { MinHeight,animation } = this.state;
+        animation.setValue(MinHeight);
     }
     render(){
         let obj = this.state.detailData,
-            status = this.state.status,
             uri = RequestImage(obj.id);
+
+        const { status,guessLikeStatus } = this.state;
 
         // 箭头方法默认向下
         let icon = this.icons['down'],
@@ -124,7 +126,14 @@ class BookDetail extends Component{
                         <ScrollView showsVerticalScrollIndicator={false}>
                             <View style={{backgroundColor: '#ffffff'}}>
                                 <View style={styles.BookMarkBox}>
-                                    <Image style={styles.BookMarkImage} source={{uri:uri}}/>
+                                    <ImageLoad
+                                        source={{uri: uri}}
+                                        style={styles.BookMarkImage}
+                                        customImagePlaceholderDefaultStyle={styles.BookMarkImage}
+                                        placeholderSource={Icon.iconBookDefaultBig}
+                                        isShowActivity={false}
+                                        borderRadius={2}
+                                    />
                                     <View style={styles.BookMarkMassage}>
                                         <Text style={styles.BookMarkTitle}>{obj.title}</Text>
                                         <View style={styles.BookMarkNewView}>
@@ -142,7 +151,10 @@ class BookDetail extends Component{
                                 </View>
                             </View>
                             {/*文章折叠动画*/}
-                            <TouchableWithoutFeedback accessible={true} onPress={() => isShow === true && this._toggle()}>
+                            <TouchableWithoutFeedback
+                                accessible={true}
+                                onPress={() => isShow === true && this._toggle()}
+                            >
                                 <View style={styles.box}>
                                     <Animated.View style={[{height:isShow === true ? this.state.animation : this.state.MaxHeight},styles.AnimatedView,]}>
                                         <Text onLayout={(e) => this._MaxHeight(e)}>
@@ -194,10 +206,13 @@ class BookDetail extends Component{
                                     </View>
                                 </TouchableOpacity>
                             </View>
-                            <View style={[styles.ComContent,{paddingBottom:15}]}>
-                                <ComHeader name={'猜你喜欢'} comments={null} color={dotColor.red}/>
-                                <View style={styles.aeRow}>{this._similarItem(this.state.similarData)}</View>
-                            </View>
+                            {
+                                guessLikeStatus === true &&
+                                <View style={[styles.ComContent,{paddingBottom:15}]}>
+                                    <ComHeader name={'猜你喜欢'} comments={null} color={dotColor.red}/>
+                                    <View style={[styles.aeRow]}>{this._similarItem(this.state.similarData)}</View>
+                                </View>
+                            }
                             {
                                 this.state.total_records !== 0 && (
                                     <View style={[styles.ComContent,{marginBottom:10}]}>
@@ -237,11 +252,11 @@ class BookDetail extends Component{
                             {
                                 this.state.bookCaseExists ?
                                     (
-                                        <View style={styles.scBtn}>
+                                        <TouchableOpacity activeOpacity={1} onPress={this._cancelCollection.bind(this,obj.hex_id)} style={styles.scBtn}>
                                             <Text style={[styles.scBtnText,{color:'#dcdcdc'}]}>已收藏</Text>
-                                        </View>
+                                        </TouchableOpacity>
                                     ) : (
-                                        <TouchableOpacity onPress={() => this._addCollection(obj.id)}  activeOpacity={0.75} style={styles.scBtn}>
+                                        <TouchableOpacity onPress={this._addCollection.bind(this,obj.id)}  activeOpacity={0.75} style={styles.scBtn}>
                                             <Text style={styles.scBtnText}>收藏</Text>
                                         </TouchableOpacity>
                                     )
@@ -291,6 +306,12 @@ class BookDetail extends Component{
                 if(res.code === 0){
                     this.setState({bookCaseExists: true});
                 }
+                else if(res.code === 401){
+                    loginTimeout(_ => { navigate('Login') });
+                }
+                else{
+                    this.setState({bookCaseExists: false});
+                }
             },err => {
                 errorShow(err);
             },headers);
@@ -310,10 +331,18 @@ class BookDetail extends Component{
                     this.setState({
                         similarData: res.data.records,
                         isLoading: false,
+                        guessLikeStatus: true
                     });
                 }
+                else if(res.code === 401){
+                    this.setState({isLoading: false,guessLikeStatus: true});
+                    loginTimeout(_ => { navigate('Login') });
+                }
+                else if(res.code === 404){
+                    this.setState({isLoading: false,guessLikeStatus: false});
+                }
                 else{
-                    this.setState({isLoading: false});
+                    this.setState({isLoading: false,guessLikeStatus: true});
                 }
             },(err) => {
                 errorShow(err);
@@ -325,17 +354,20 @@ class BookDetail extends Component{
                     this.setState({
                         detailData: res.data,
                         status: true,
-                        isLoading: false,
+                        //isLoading: false
                     });
+                }
+                else if(res.code === 401){
+                    this.setState({
+                        //isLoading: false,
+                        status: true,
+                    });
+                    loginTimeout(_ => {navigate("Login")});
                 }
                 else{
                     this.setState({
-                        isLoading: false,
+                        //isLoading: false,
                         status: true,
-                    });
-
-                    loginTimeout(_ => {
-                        navigate("Login");
                     });
                 }
             },(err) => {
@@ -368,10 +400,21 @@ class BookDetail extends Component{
                         likeStatus: this.likeStatus,
                     });
                 }
-                else{
+                else if(res.code === 401){
+                    this.setState({isLoading: false});
+                    loginTimeout(_ => { navigate('Login') });
+                }
+                else if(res.code === 404){
                     this.setState({
+                        commentsData: [],
+                        total_records: 0,
                         isLoading: false,
+                        likeCountArr: [],
+                        likeStatus: [],
                     });
+                }
+                else{
+                    this.setState({isLoading: false});
                 }
             },(err) => {
                 errorShow(err);
@@ -381,19 +424,24 @@ class BookDetail extends Component{
         });
     }
     _toggle(){
-        this.setState({expanded: !this.state.expanded});
-        let changeValue = this.state.expanded ? this.state.MaxHeight : this.state.MinHeight;
+        const { expanded,MaxHeight,MinHeight,animation } = this.state;
+        this.setState({expanded: !expanded});
+        let changeValue = expanded ? MaxHeight : MinHeight;
 
-        Animated.spring(this.state.animation,{
+        Animated.spring(animation,{
             toValue: changeValue,
-            friction: 10, //摩擦力 （越小 振幅越大）
-            tension: 100, //拉力
+            friction: 50, //摩擦力 （越小 振幅越大）
+            tension: 0, //拉力
         }).start();
     }
     _MaxHeight(e){
         let MaxHeight = e.nativeEvent.layout.height;
+        const { MinHeight } = this.state;
+
+        console.log('MaxHeight',MaxHeight);
+
         this.setState({MaxHeight: MaxHeight});
-        parseInt(MaxHeight) >= this.state.MinHeight && this.setState({isShow: true});
+        Number(MaxHeight) >= MinHeight && this.setState({isShow: true});
     }
     _bookCatalog(hex_id,book_title){
         let authorized_key = this.state.authorized_key;
@@ -441,29 +489,49 @@ class BookDetail extends Component{
     _addCollection(book_id){
         let authorized_key = this.state.authorized_key;
         let url = Api.common + Api.category.addBookCase,
-            params = {book_id:book_id},
+            params = Fecth.dictToFormData({book_id:book_id}),
             headers = {'Authorized-Key': authorized_key,"SESSION-ID": launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
             // post请求
-            Fecth.post(url,Fecth.dictToFormData(params),headers,(res) => {
+            Fecth.post(url,params,headers,(res) => {
                 if(res.code === 0){
                     if(res.data === 'add'){
-                        this.refs.toast.show('添加成功',600);
+                        this.refs.toast.show('收藏成功',600);
                         this.setState({bookCaseExists: true});
                     }
                 }
-                else{
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+
+                if(res.code === 401){
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },(err) => {
                 errorShow(err);
             });
-        },() => {
-            this.props.navigation.navigate("NetWork");
-        });
+        },() => {navigate("NetWork")});
+    }
+    _cancelCollection(book_id){
+        let authorized_key = this.state.authorized_key;
+        let url = Api.common + Api.category.bookCasesSingleDel,
+            params = Fecth.dictToFormData({book_id:book_id}),
+            headers = {'Authorized-Key': authorized_key,"SESSION-ID": launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
+
+        networkCheck(() => {
+            Fecth.post(url,params,headers,(res) => {
+                if(res.code === 0){
+                    this.refs.toast.show('收藏取消',600);
+                    this.setState({bookCaseExists: false});
+                }
+
+                if(res.code === 401){
+                    loginTimeout(_ => {navigate("Login")});
+                }
+            },(err) => {
+                errorShow(err);
+            });
+        },() => {navigate("NetWork")});
     }
     _similarItem(similarData){
         let uri,results;
@@ -475,8 +543,15 @@ class BookDetail extends Component{
                     key={index}
                     onPress={() => this._similarItemOnPress(obj.id,obj.hex_id)}
                 >
-                    <View style={styles.boxFooterLump}>
-                        <Image source={{uri:uri}} style={styles.bookSmall}/>
+                    <View style={[styles.boxFooterLump]}>
+                        <ImageLoad
+                            source={{uri: uri}}
+                            style={styles.bookSmall}
+                            placeholderSource={Icon.iconBookDefaultSmall}
+                            isShowActivity={false}
+                            customImagePlaceholderDefaultStyle={styles.bookSmall}
+                            borderRadius={2}
+                        />
                         <Text style={styles.boxFooterText} numberOfLines={1}>{obj.title}</Text>
                     </View>
                 </TouchableWithoutFeedback>
@@ -485,10 +560,20 @@ class BookDetail extends Component{
         return results;
     }
     _similarItemOnPress(id,hex_id){
-        this.setState({isLoading: true});
+        const { animation,MinHeight } = this.state;
+
         this._requestData(id,hex_id);
         this._bookCaseExists(id,hex_id);
         this._requestCommets(id);
+        this.setState({
+            isLoading: true,
+            MaxHeight: 0,
+            MinHeight: 58,
+            expanded: true,
+            isShow: false
+        });
+
+        animation.setValue(MinHeight);
     }
 }
 
@@ -589,7 +674,7 @@ const styles = StyleSheet.create({
         justifyContent: 'center',
         alignItems: 'center',
         borderBottomColor: '#E5E5E5',
-        borderBottomWidth: 1 / Devices.piexl,
+        //borderBottomWidth: 1 / Devices.piexl,
         borderStyle: 'solid'
     },
     mlLastestMes_left: {
@@ -690,7 +775,8 @@ const styles = StyleSheet.create({
         paddingBottom: 15
     },
     boxFooterLump: {
-        flex: 1,
+        //flex: 1,
+        width: Devices.width / 4,
         justifyContent: 'center'
     },
     bookSmall: {
@@ -698,7 +784,9 @@ const styles = StyleSheet.create({
         height: 76,
         borderRadius: 2,
         overflow: 'hidden',
-        alignSelf: 'center'
+        alignSelf: 'center',
+        borderWidth: 0.25,
+        borderColor: '#ccc'
     },
     boxFooterText: {
         fontSize: 12,
@@ -749,7 +837,7 @@ const styles = StyleSheet.create({
     },
     aeRow: {
         flexDirection: 'row',
-        marginTop: 12,
+        marginTop: 12
     },
     ComContent: {
         backgroundColor: '#FFFFFF',
@@ -795,7 +883,9 @@ const styles = StyleSheet.create({
     BookMarkImage: {
         width: 75,
         height: 95,
-        borderRadius: 2
+        borderWidth: 0.25,
+        borderColor: '#ccc',
+        borderRadius: 2,
     },
     BookMarkBox: {
         marginLeft: 15,

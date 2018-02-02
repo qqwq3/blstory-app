@@ -8,7 +8,8 @@ import {
     StyleSheet,
     PixelRatio,
     Image,
-    TouchableWithoutFeedback
+    TouchableWithoutFeedback,
+    TouchableOpacity
 } from 'react-native';
 import Icon from '../common/Icon';
 import { Devices } from "../common/Api";
@@ -60,14 +61,14 @@ class HeaderReturn extends Component{
         bottomBorder: PropTypes.bool,
         backgroundColor: PropTypes.string.isRequired,
         color: PropTypes.string.isRequired,
-        borderBottomColor: PropTypes.string.isRequired,
+        borderBottomColor: PropTypes.string.isRequired
     };
     static defaultProps = {
         title: '',
         bottomBorder: true,
         backgroundColor: '#FFFFFF',
         color: '#304758',
-        borderBottomColor: '#E5E5E5',
+        borderBottomColor: '#E5E5E5'
     };
     render(){
         return (

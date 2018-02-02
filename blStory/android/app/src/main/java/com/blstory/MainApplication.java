@@ -2,6 +2,7 @@ package com.blstory;
 
 import android.app.Application;
 import com.facebook.react.ReactApplication;
+
 import com.rnfs.RNFSPackage;
 import com.parryworld.rnappupdate.RNAppUpdatePackage;
 import com.BV.LinearGradient.LinearGradientPackage;

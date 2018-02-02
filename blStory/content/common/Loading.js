@@ -6,21 +6,9 @@ import {
     View,
     Text,
     StyleSheet,
-    ActivityIndicator,
+    ActivityIndicator
 } from 'react-native';
 import PropTypes from 'prop-types';
-
-//let Progress = require('react-native-progress');
-/*
-* <Progress.Circle
-    thickness={2}
-    borderWidth={3}
-    borderColor={"#f3916b"}
-    size={40}
-    indeterminate={true}
-    strokeCap={'round'}
-  />
-* */
 
 class Loading extends Component{
     static propTypes = {
@@ -29,7 +17,7 @@ class Loading extends Component{
         size: PropTypes.string,
         color: PropTypes.string,
         animating: PropTypes.bool,
-        varible: PropTypes.number,
+        varible: PropTypes.number
     };
     static defaultProps = {
         isShow: true,
@@ -37,7 +25,7 @@ class Loading extends Component{
         color: '#f3916b',
         size: 'large',
         animating: true,
-        varible: 255,
+        varible: 255
     };
     render(){
         return (

@@ -17,6 +17,7 @@
     "react-native-device-info": "^0.13.0",
     "react-native-drawer": "^2.5.0",
     "react-native-easy-toast": "^1.0.9",
+    "react-native-image-placeholder": "^1.0.14",
     "react-native-linear-gradient": "^2.4.0",
     "react-native-popup-dialog": "^0.10.44",
     "react-native-progress": "^3.4.0",

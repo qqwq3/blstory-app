@@ -9,6 +9,7 @@ import {
     Image,
     TouchableWithoutFeedback
 } from 'react-native';
+import ImageLoad from 'react-native-image-placeholder';
 import { Api,Devices } from "../common/Api";
 import Icon from '../common/Icon';
 import RequestImage from '../common/RequestImage';
@@ -32,7 +33,13 @@ class BookDetailComments extends Component{
                 return (
                     <View key={j} style={styles.commentsRow}>
                         <View style={styles.comments_left}>
-                            <Image source={{uri:user_uri}} style={{width:30,height:30}} resizeMode={'contain'}/>
+                            <ImageLoad
+                                source={{uri: user_uri}}
+                                style={{width:30,height:30}}
+                                customImagePlaceholderDefaultStyle={{width:30,height:30}}
+                                placeholderSource={Icon.iconCommentAvtarDefault}
+                                isShowActivity={false}
+                            />
                         </View>
                         <View style={styles.comments_right}>
                             <View style={styles.comments_title}>
@@ -86,7 +93,8 @@ class BookDetailComments extends Component{
                 if(res.code === 0){
                     this.props.toast.show('点赞成功',600);
                 }
-                else{
+
+                if(res.code === 401){
                     loginTimeout(_ => {navigate("Login")});
                 }
             },err => {

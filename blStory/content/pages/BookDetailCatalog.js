@@ -55,6 +55,7 @@ class BookDetailCatalog extends Component{
         let url = Api.common + Api.category.getChaptersPager,
             params = '?book_id=' + hex_id + '&page=' + page,
             headers = {'SESSION-ID': launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
             Fecth.get(url,params,res => {
@@ -70,15 +71,16 @@ class BookDetailCatalog extends Component{
                         totalPage: chapter.totalPage,
                         status: true,
                     });
+                    return
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         isLoading: false,
                         status: true,
                     });
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },err => {
                 errorShow(err);
@@ -148,13 +150,16 @@ class BookDetailCatalog extends Component{
                                         closeChapterSelect={() => this._closeChapterSelect()}
                                         changePage={(page) => this._changePage(page)}
                                         page={this.state.page}
+                                        transparent={true}
+                                        animationType={'fade'}
+                                        modalVisible={this.state.pop}
                                     />
                                 ) : null
                             }
                         </View>
                     )
                 }
-                <Loading opacity={1} show={this.state.isLoading} />
+                <Loading opacity={0.60} show={this.state.isLoading} />
             </View>
         );
     }

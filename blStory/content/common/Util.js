@@ -13,9 +13,12 @@ import {
     Alert,
     AlertIOS,
     NetInfo,
+    Text,
+    BackHandler
 } from 'react-native';
 import { Api } from "./Api";
 import DeviceInfo from 'react-native-device-info';
+import StorageUtil from './StorageUtil';
 
 export let screenW = Dimensions.get('window').width;
 export let screenH = Dimensions.get('window').height;
@@ -238,7 +241,14 @@ export function loginTimeout(navigate: Function){
     if(Platform.OS === 'android'){
         Alert.alert("系统提示","登录超时，请重新登录！",[
             {
-                text: '确定',onPress: () => navigate && navigate()
+                text: '确定',onPress: () =>
+                {
+                    navigate && navigate();
+
+                    StorageUtil.get('user',res => {
+                        res !== null && StorageUtil.save('user',{},null);
+                    });
+                }
             }
         ]);
     }
@@ -246,14 +256,73 @@ export function loginTimeout(navigate: Function){
     if(Platform.OS === 'ios'){
         AlertIOS.alert("系统提示","登录超时，请重新登录！",[
             {
-                text: '确定',onPress: () => navigate && navigate()
+                text: '确定',onPress: () =>
+                {
+                    navigate && navigate();
+
+                    StorageUtil.get('user',res => {
+                        res !== null && StorageUtil.save('user',{},null);
+                    });
+                }
             }
         ]);
     }
 }
 
+// 标签替换
+export function ReplaceAll(obj: string,a: string,b: string){
 
+    if(obj.indexOf(a) > -1 || obj.indexOf(b) > -1){
+        return obj.replace(new RegExp(a,"gm"),b);
+    }
 
+    return obj;
+}
+
+// 根据请求返回来的状态码显示提示信息
+export function statusMes(code: number,callback: Function){
+    switch (code){
+        // 参数无效
+        case 101: Alert.alert('系统提示','参数无效！',[{text:'关闭'}]);
+            break;
+
+        // 缺少参数
+        case 102: Alert.alert('系统提示','缺少参数！',[{text:'关闭'}]);
+            break;
+
+        // 未执行任何操作
+        case 1000: Alert.alert('系统提示','没有执行任何操作！',[{text:'关闭'}]);
+            break;
+
+        // 登录超时
+        case 401: Alert.alert('系统提示','登录超时！',[{text:'确定',onPress:() => {callback && callback()}}]);
+            break;
+
+        // 未知标签
+        case 1001: Alert.alert('系统提示','未知标签！',[{text:'关闭'}]);
+            break;
+
+        // 未知元素
+        case 1002: Alert.alert('系统提示','未知元素！',[{text:'关闭'}]);
+            break;
+
+        // 未知错误
+        case 9999: Alert.alert('系统提示','未知错误，请稍后再试！',[{text:'关闭'}]);
+            break;
+    }
+}
+
+// 退出应用
+export function exitApp(){
+    if(Platform.OS === 'android'){
+        BackHandler.exitApp();
+    }
+
+    if(Platform.OS === 'ios'){
+        // 待处理
+        Alert.alert('退出应用程序待处理');
+    }
+}
 
 
 

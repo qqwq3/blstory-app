@@ -13,7 +13,7 @@ import {
     TouchableOpacity,
     Platform,
     Alert,
-    Button,
+    Button
 } from 'react-native';
 import * as wechat from 'react-native-wechat';
 import Toast from 'react-native-easy-toast';
@@ -36,7 +36,7 @@ class Login extends Component{
             id: '',
             name: '',
             appVersion: DeviceInfo.getVersion(),
-        }
+        };
     }
     componentWillMount(){
         this._getScopeAndState();
@@ -93,7 +93,8 @@ class Login extends Component{
     _getScopeAndState(){
         let url = Api.common + Api.category.weixin,
             params = '',
-            headers = {'SESSION-ID': ''};//launchConfig.sessionID};
+            headers = {};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
             Fecth.get(url,params,(res) => {
@@ -116,7 +117,7 @@ class Login extends Component{
                 errorShow(err);
             },headers);
         },() => {
-            this.props.navigation.navigate("NetWork");
+            navigate("NetWork");
         });
     }
     _wechatRegisterApp(appid){

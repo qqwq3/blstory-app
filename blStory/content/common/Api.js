@@ -85,8 +85,8 @@
 //#获取用户的最后一次的阅读记录
 //GET /api/app/user/last_read
 
-// 获取用户余额 （临时地址）
-// http://192.168.0.149:8080/user/balance
+// 获取用户余额
+// /user/balance
 
 import { Dimensions,PixelRatio } from 'react-native';
 import Icon from './Icon';
@@ -95,14 +95,15 @@ import Icon from './Icon';
 const Devices = {
     width: Dimensions.get('window').width,
     height: Dimensions.get('window').height,
-    piexl: PixelRatio.get(),
+    piexl: PixelRatio.get()
 };
 
 // Api
 const Api = {
     imgSever: 'http://img.bailu8.com/',
-    common: 'http://api.yuetoupiao.cn/api/',
+    //common: 'http://api.yuetoupiao.cn/api/',
     //common: 'http://192.168.0.149:8081/api/',
+    common: 'http://139.196.160.162:8888/api/',
     category: {
         begin: 'app/launch',
         eachTipList: 'app/book/get-promotion?promotion_id=2,3,4,5,6,7,8,9',
@@ -119,6 +120,7 @@ const Api = {
         likeComment: 'app/book/like-comment',
         getBookCases: 'app/book/get-book-cases',
         bookCasesBatchDel: 'app/book/bookcase/batch_delete',
+        bookCasesSingleDel: 'app/book/bookcase/delete',
         logout: 'app/user/logout',
         signIn: 'app/user/sign-in',
         signInCheck: 'app/user/check-sign-in',
@@ -136,7 +138,7 @@ const Api = {
         checkUpgradeIos: 'app/checkUpgrade/ios',
         spreadGetDevice: 'app/spread/get_device',
         spreadSwitch: 'app/spread/switch',
-        spreadExchange: 'app/spread/exchange',
+        spreadExchange: 'app/spread/exchange'
     },
 };
 
@@ -171,7 +173,7 @@ const drawerMenu = [
     {key: 2, router: 'MyLibrary', text: '书库', icon: Icon.iconLibrary},
     {key: 3, router: 'RankingList', text: '排行', icon: Icon.iconRank},
     {key: 4, router: 'Spread',text: '福利', icon: Icon.iconInviteCode},
-    {key: 5, router: 'Off', text: '退出账户', icon: Icon.iconLogout}
+    {key: 5, router: 'Off', text: '退出', icon: Icon.iconLogout}
 ];
 
 // 图书馆菜单数据

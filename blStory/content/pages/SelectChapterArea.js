@@ -7,6 +7,7 @@ import {
     StyleSheet,
     ScrollView,
     TouchableWithoutFeedback,
+    Modal
 } from 'react-native';
 import _ from 'lodash';
 import PropTypes from 'prop-types';
@@ -20,6 +21,9 @@ class SelectChapterArea extends Component{
         count: PropTypes.number,
         closeChapterSelect: PropTypes.func,
         page: PropTypes.number,
+        transparent: PropTypes.bool,
+        modalVisible: PropTypes.bool,
+        animationType: PropTypes.string
     };
     constructor(props){
         super(props);
@@ -46,45 +50,52 @@ class SelectChapterArea extends Component{
         let countArr = _.range(this.props.count);
 
         return (
-            <TouchableOpacity
-                activeOpacity={1}
-                onPress={() => this.props.closeChapterSelect()}
-                style={styles.pop}
+            <Modal
+                visible={this.props.modalVisible}
+                animationType={this.props.animationType}
+                transparent={this.props.transparent}
+                onRequestClose={() => this.props.closeChapterSelect()}
             >
-                <View style={styles.popContent}>
-                    <ScrollView
-                        showsHorizontalScrollIndicator={false}
-                        showsVerticalScrollIndicator={false}
-                        alwaysBounceVertical={true}
-                    >
-                        {
-                            countArr.map((item,index) => {
-                                let dotItem = this.props.page === (index+1) ? <View style={styles.selectDot} /> : null;
-                                let borderColor = this.props.page === (index+1) ? '#F8AD54' : '#808080';
+                <TouchableOpacity
+                    activeOpacity={1}
+                    onPress={() => this.props.closeChapterSelect()}
+                    style={styles.pop}
+                >
+                    <View style={styles.popContent}>
+                        <ScrollView
+                            showsHorizontalScrollIndicator={false}
+                            showsVerticalScrollIndicator={false}
+                            alwaysBounceVertical={true}
+                        >
+                            {
+                                countArr.map((item,index) => {
+                                    let dotItem = this.props.page === (index+1) ? <View style={styles.selectDot} /> : null;
+                                    let borderColor = this.props.page === (index+1) ? '#F8AD54' : '#808080';
 
-                                return (
-                                    <TouchableOpacity
-                                        onPress={() => this._select(item+1)}
-                                        key={index}
-                                        style={styles.popRow}
-                                    >
-                                        <View>
-                                            <Text style={{fontSize:15,color:'#808080'}}>
-                                                {this.state.startIndexArr[index]} ~ {this.state.endIndexArr[index]} 章
-                                            </Text>
-                                        </View>
-                                        <View>
-                                            <View style={[styles.singleSelect,{borderColor:borderColor}]}>
-                                                {dotItem}
+                                    return (
+                                        <TouchableOpacity
+                                            onPress={() => this.props.page === (index+1) ? this.props.closeChapterSelect() : this._select(item+1)}
+                                            key={index}
+                                            style={styles.popRow}
+                                        >
+                                            <View>
+                                                <Text style={{fontSize:15,color:'#808080'}}>
+                                                    {this.state.startIndexArr[index]} ~ {this.state.endIndexArr[index]} 章
+                                                </Text>
                                             </View>
-                                        </View>
-                                    </TouchableOpacity>
-                                )
-                            })
-                        }
-                    </ScrollView>
-                </View>
-            </TouchableOpacity>
+                                            <View>
+                                                <View style={[styles.singleSelect,{borderColor:borderColor}]}>
+                                                    {dotItem}
+                                                </View>
+                                            </View>
+                                        </TouchableOpacity>
+                                    )
+                                })
+                            }
+                        </ScrollView>
+                    </View>
+                </TouchableOpacity>
+            </Modal>
         )
     }
 }

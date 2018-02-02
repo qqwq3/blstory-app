@@ -16,6 +16,7 @@ import {
     RefreshControl,
 } from 'react-native';
 import { SwipeListView } from 'react-native-swipe-list-view';
+import ImageLoad from 'react-native-image-placeholder';
 import Toast from 'react-native-easy-toast';
 import { Devices,Api } from "../common/Api";
 import Loading from '../common/Loading';
@@ -32,9 +33,10 @@ class MyBookMark extends Component{
             dataStatus: false,
             isLoading: true,
             isLoadMore: false,
-            data: [],
+            data: []
         };
-        this.authorized_key = this.props.navigation.state.params.authorized_key;
+        this.user = this.props.navigation.state.params.user;
+        this.authorized_key = this.user.authorized_key;
         this.ds = new ListView.DataSource({rowHasChanged:(r1,r2) => r1 !== r2});
         this.cachedResults = {
             nextPage: 1,
@@ -49,6 +51,7 @@ class MyBookMark extends Component{
         let url = Api.common + Api.category.getBookReads,
             params = '?page='+ page +'&limit=8',
             headers = {'Authorized-Key': this.authorized_key,'SESSION_ID': launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
             Fecth.get(url,params,res => {
@@ -66,15 +69,22 @@ class MyBookMark extends Component{
                         data: items,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         dataStatus: true,
                         isLoading: false,
                         isLoadMore: false,
                     });
 
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
+                    loginTimeout(_ => {navigate("Login")});
+                }
+
+                if(res.code === 404){
+                    this.setState({
+                        dataStatus: false,
+                        isLoading: false,
+                        isLoadMore: false
                     });
                 }
             },err => {
@@ -86,15 +96,14 @@ class MyBookMark extends Component{
 
                 errorShow(err);
             },headers);
-        },() => {
-            this.props.navigation.navigate("NetWork");
-        });
+        },() => {navigate("NetWork")});
     }
     _deleteRow(item, secId, rowId, rowMap) {
         let book_id_hex = item.book_id_hex;
         let url = Api.common + Api.category.bookReadDelete,
             params = Fecth.dictToFormData({book_id: book_id_hex}),
             headers = {'Authorized-Key': this.authorized_key,"SESSION-ID": launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         rowMap[`${secId}${rowId}`].closeRow();
         const newData = [...this.state.data];
@@ -107,19 +116,18 @@ class MyBookMark extends Component{
         networkCheck(() => {
             Fecth.post(url,params,headers,res => {
                 if(res.code === 0){
-                    this.refs.toast.show('删除成功！',1000);
+                    this.refs.toast.show('删除成功',600);
                     this._requestData(1);
                 }
-                else{
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+
+                if(res.code === 401){
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },err => {
                 errorShow(err);
             });
         },() => {
-            this.props.navigation.navigate("NetWork");
+            navigate("NetWork");
         });
     }
     _renderHiddenRow(data, secId, rowId, rowMap){
@@ -150,7 +158,14 @@ class MyBookMark extends Component{
                 >
                     <View style={{backgroundColor: '#FFF'}}>
                         <View style={styles.BookMarkBox}>
-                            <Image style={styles.BookMarkImage} source={{uri:uri}}/>
+                            <ImageLoad
+                                style={styles.BookMarkImage}
+                                source={{uri:uri}}
+                                customImagePlaceholderDefaultStyle={styles.BookMarkImage}
+                                placeholderSource={Icon.iconBookDefaultBig}
+                                isShowActivity={false}
+                                borderRadius={2}
+                            />
                             <View style={styles.BookMarkMassage}>
                                 <Text style={styles.BookMarkTitle} numberOfLines={1}>{item.book_title}</Text>
                                 <View style={[styles.BookMarkNew]}>
@@ -177,9 +192,10 @@ class MyBookMark extends Component{
     }
     _continueRead(chapter_id_hex,book_title,book_id_hex){
         let authorized_key = this.authorized_key;
+        const { navigate } = this.props.navigation;
 
         networkCheck(() => {
-            this.props.navigation.navigate('Reader',{
+            navigate('Reader',{
                 chapter_id: chapter_id_hex,
                 hex_id: book_id_hex,
                 authorized_key: authorized_key,
@@ -187,7 +203,7 @@ class MyBookMark extends Component{
                 book_title: book_title,
             });
         },() => {
-            this.props.navigation.navigate("NetWork");
+            navigate("NetWork");
         });
     }
     _fetchMoreData(){
@@ -237,6 +253,8 @@ class MyBookMark extends Component{
                                 onEndReached={this._fetchMoreData.bind(this)}
                                 onEndReachedThreshold={40}
                                 renderFooter={this._renderFooter.bind(this)}
+                                closeOnRowPress={true}
+                                closeOnScroll={true}
                             />
                         </View>
                     ) : (
@@ -283,8 +301,6 @@ const styles = StyleSheet.create({
         justifyContent: 'space-between',
         padding: 15
     },
-
-
     BookMarkProgress: {
         flex: 1,
         fontSize: 12,
@@ -322,7 +338,9 @@ const styles = StyleSheet.create({
     BookMarkImage: {
         width: 75,
         height: 95,
-        borderRadius: 2
+        borderRadius: 2,
+        borderWidth: 0.25,
+        borderColor: '#ccc'
     },
     BookMarkBox: {
         marginLeft: 15,

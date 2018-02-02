@@ -148,6 +148,7 @@ class Reader extends React.Component{
                             navigation={this.props.navigation}
                             authorizedKey={this.authorized_key}
                             bookTitle={this.book_title}
+                            ref={'readerCatalogue'}
                         />
                     }
                     ref={'drawer'}
@@ -207,18 +208,18 @@ class Reader extends React.Component{
                             themeSwitch={(index) => this._themeSwitch(index)}
                         />
                     }
-                    {
-                        this.state.barStatusC === true && (
-                            <CommentSetBar
-                                sendComments={() => this._sendComments()}
-                                closeComments={() => this._closeComments()}
-                                focuStatus={this.state.barStatusC}
-                                changeText={(e) => this._changeText(e)}
-                                opacity={0.65}
-                                ref={'textInput'}
-                            />
-                        )
-                    }
+                    <CommentSetBar
+                        sendComments={() => this._sendComments()}
+                        closeComments={() => this._closeComments()}
+                        focuStatus={this.state.barStatusC}
+                        changeText={(e) => this._changeText(e)}
+                        opacity={0.5}
+                        ref={'textInput'}
+                        visible={this.state.barStatusC}
+                        closeModal={this._closeModal.bind(this)}
+                        transparent={true}
+                        animationType={'slide'}
+                    />
                     {
                         this.state.readerPrompt === true && (
                             <TouchableOpacity
@@ -241,6 +242,9 @@ class Reader extends React.Component{
                 <Loading opacity={0.60} show={this.state.isLoading} />
             )
         );
+    }
+    _closeModal(){
+        this.setState({barStatusC: false});
     }
     _changeText(commontsText){
         this.commontsText = commontsText;
@@ -308,11 +312,11 @@ class Reader extends React.Component{
         let hex_id = this.book_hex_id;
         let url = Api.common + Api.category.getChapter,
             params = '?chapter_id=book_id' + hex_id,
-            headers = {'SESSION-ID': launchConfig.sessionID};
+            headers = {'SESSION-ID': launchConfig.sessionID,'Authorized-Key':this.authorized_key};
         const { navigate } = this.props.navigation;
 
         networkCheck(() => {
-            Fecth.get(url,params,res => {   console.log('reader',res);
+            Fecth.get(url,params,res => {
                 if(res.code === 0){
                     this.setState({
                         totalStatus: true,
@@ -331,7 +335,8 @@ class Reader extends React.Component{
                         result: res.data.chapter.result || {},
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         totalStatus: true,
                         isLoading: false,
@@ -403,7 +408,7 @@ class Reader extends React.Component{
     }
     _fontSizeTypeSubtract(){
         if(this.state.fontSize <= 12){
-            this.refs.toast.show('已经是最小字号了哦！',1000);
+            this.refs.toast.show('已经是最小字号了哦',600);
         }
         else{
             this.setState({
@@ -417,7 +422,7 @@ class Reader extends React.Component{
     }
     _fontSizeTypeAdd(){
         if(this.state.fontSize >= 18){
-            this.refs.toast.show('已经是最大字号了哦！',1000);
+            this.refs.toast.show('已经是最大字号了哦',600);
         }
         else{
             this.setState({
@@ -523,20 +528,22 @@ class Reader extends React.Component{
             //console.log("向左")
             this._nextData(this.state.nextHexId,this.book_hex_id,0);
             this._scrollTop();
+            //this.refs['readerCatalogue']._requestBookMarkData(1);
         }
 
         if(x > 0){
             //console.log("向右")
             this._prevData(this.state.prevHexId,this.book_hex_id,0);
             this._scrollTop();
+            //this.refs['readerCatalogue']._requestBookMarkData(1);
         }
     }
     _scrollTop(){
-        this.refs.scroll.scrollTo({x: 0,y: 0,animated: false});
+        this.refs.scroll.scrollTo({x: 0,y: 0,animated: true});
     }
     _prevData(chapter_id,book_id,confirm_pay){
         if(chapter_id === ''){
-            this.refs.toast.show('已经是第一章了哦！',1000);
+            this.refs.toast.show('已经是第一章了哦',600);
             this.setState({isLoading: false});
         }
         else{
@@ -545,7 +552,7 @@ class Reader extends React.Component{
     }
     _nextData(chapter_id,book_id,confirm_pay){
         if(chapter_id === ''){
-            this.refs.toast.show('已经是最后一章了哦！',1000);
+            this.refs.toast.show('已经是最后一章了哦',600);
             this.setState({isLoading: false});
         }
         else{
@@ -578,7 +585,8 @@ class Reader extends React.Component{
                         result: res.data.chapter.result || {},
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         totalStatus: true,
                         isLoading: false,
@@ -680,9 +688,11 @@ class Reader extends React.Component{
                 content: content,
             }),
             headers = {'Authorized-Key': this.authorized_key,'SESSION-ID': launchConfig.sessionID};
+        const {navigate} = this.props.navigation;
 
         if(content === ''){
-            this.refs.toast.show('请输入评论哦！',600);
+            //this.refs.toast.show('请输入评论哦',600);
+            Alert.alert('系统提示','亲，请输入评论哦',[{text: '关闭'}]);
             return;
         }
 
@@ -691,25 +701,24 @@ class Reader extends React.Component{
         networkCheck(() => {
             Fecth.post(url,params,headers,res => {
                 if(res.code === 0){
-                    this.refs.toast.show('评论成功！',600);
+                    this.refs['toast'].show('评论成功',600);
+                    this.commontsText='';
                 }
-                else{
-                    loginTimeout(_ => {
-                        this.props.navigation.navigate("Login");
-                    });
+
+                if(res.code === 401){
+                    loginTimeout(_ => {navigate("Login")});
                 }
             },err => {
                 errorShow(err);
             });
-        },() => {
-            this.props.navigation.navigate("NetWork");
-        });
+        },() => {navigate("NetWork")});
     }
     _closeComments(){
         this._commetsControl();
     }
     _commetsControl(){
         this.refs['textInput']._textInputBlur();
+        this.refs['textInput']._textInputClear();
         this.setState({barStatusC: false});
     }
 }

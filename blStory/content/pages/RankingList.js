@@ -9,11 +9,10 @@ import {
     ScrollView,
     TouchableOpacity,
     TouchableWithoutFeedback,
-    Image,
-    FlatList,
-    ActivityIndicator,
+    Image
 } from 'react-native';
 import ScrollableTabView from 'react-native-scrollable-tab-view';
+import ImageLoad from 'react-native-image-placeholder';
 import PropTypes from 'prop-types';
 import RankingTabBar from './RankingTabBar';
 import { Api,Devices } from "../common/Api";
@@ -21,7 +20,7 @@ import RequestImage from '../common/RequestImage';
 import Fecth from '../common/Fecth';
 import Loading from '../common/Loading';
 import { errorShow,loginTimeout,networkCheck } from '../common/Util';
-import FooterLoadActivityIndicator from '../common/FooterLoadActivityIndicator';
+import Icon from '../common/Icon';
 
 class RankingList extends Component{
     constructor(props){
@@ -29,107 +28,133 @@ class RankingList extends Component{
         this.state = {
             tabNames: ['点击榜', '收藏榜', '新书榜', '完结榜'],
             tabStatusValue: ["total_hits","total_likes","total_present_amount","finish"],
-            listData: [],
-            isLoading: true,
-            switchStatus: false,
-        }
+            switchStatus: false
+        };
+        this.authorized_key = this.props.navigation.state.params.user.authorized_key;
+        this.data = {
+            total_hits: [],
+            total_likes: [],
+            total_present_amount: [],
+            finish: []
+        };
     }
     componentWillMount() {
         const { tabStatusValue } = this.state;
-        this._requestData(tabStatusValue[0]);
+        this._grabStructure(tabStatusValue);
     }
     render(){
-        let tabNames = this.state.tabNames,
-            _data = [],
-            tabStatusValue = this.state.tabStatusValue;
-        const { switchStatus,listData } = this.state;
-
-        listData.map((obj,i) => {
-            _data.push({key: i,obj: obj});
-        });
+        const { tabStatusValue,tabNames,isLoading } = this.state;
 
         return (
             <View style={styles.RankingListConent}>
                 <ScrollableTabView
-                    renderTabBar={() =>
-                        <RankingTabBar
-                            tabStatusValue={tabStatusValue}
-                            requestData={(args) => this._requestData(args)}
-                        />
-                    }
+                    renderTabBar={() => <RankingTabBar/>}
+                    initialPage={0}
                     tabBarInactiveTextColor={'#4c4c4c'}
                     tabBarActiveTextColor={'#f3916b'}
                     tabBarBackgroundColor={'#ffffff'}
                     locked={false}
-                    onChangeTab={this._onChangeTab.bind(this)}
-                    ref={ref => this._scrollableTabViewRef = ref}
+                    scrollWithoutAnimation={false}
+                    prerenderingSiblingsNumber={3}
                 >
                     {
-                        this.state.tabNames.map((name,key) => {
+                        tabNames.map((name,key) => {
                             return (
-                                <View style={styles.content} key={key} tabLabel={name}>
-                                    <FlatList
-                                        data={_data}
-                                        renderItem={this._renderItem}
-                                        numColumns={1}
-                                        ListFooterComponent={<RankingListFooter switchStatus={switchStatus} />}
-                                        showsHorizontalScrollIndicator={false}
-                                        showsVerticalScrollIndicator={false}
-                                    />
-                                </View>
+                                <ScrollView
+                                    style={styles.content}
+                                    key={key}
+                                    tabLabel={name}
+                                    showsHorizontalScrollIndicator={false}
+                                    showsVerticalScrollIndicator={false}
+                                    ref={'scrollView'}
+                                >
+                                    {
+                                        this.data[tabStatusValue[key]].map((obj,index) => {
+                                            return this._renderItem(obj,index);
+                                        })
+                                    }
+                                    <RankingListFooter text={'没有更多排行了哦'}/>
+                                </ScrollView>
                             )
                         })
                     }
                 </ScrollableTabView>
-                <Loading show={this.state.isLoading} />
+                <Loading opacity={0.60} show={isLoading} />
             </View>
         );
     }
-    _onChangeTab(){
-        const { tabStatusValue } = this.state;
-        const { currentPage } = this._scrollableTabViewRef.state;
-
-        this.setState({listData: [],switchStatus: true});
-        this._requestData(tabStatusValue[currentPage]);
-    }
-    _requestData(args){
+    _grabStructure(args){
         let url = Api.common + Api.category.rankingList,
-            params = "?sort_by=" + args,
-            headers = {'SESSION-ID': launchConfig.sessionID};
+            headers = {'SESSION-ID': launchConfig.sessionID,'Authorized-Key': this.authorized_key};
         const { navigate } = this.props.navigation;
 
-        networkCheck(() => {
-            Fecth.get(url,params,(res) => {
-                if(res.code === 0){
-                    this.setState({
-                        listData: res.data,
-                        isLoading: false,
-                        switchStatus: false,
-                    });
-                }
-                else{
-                    this.setState({
-                        isLoading: false,
-                        switchStatus: false,
-                    });
-
-                    loginTimeout(_ => {
-                        navigate("Login");
-                    });
-                }
-            },(err) => {
-                this.setState({
-                    isLoading: false,
-                    switchStatus: false,
-                });
-                errorShow(err);
-            },headers);
-        },() => {
-            this.props.navigation.navigate("NetWork");
+        args.map((obj,index) => {
+            let params = "?sort_by=" + obj;
+            this._requestData(url,params,headers,navigate,index);
         });
     }
-    _renderItem = ({item,index}) => {
-        let obj = item.obj,
+    _requestData(url,params,headers,navigate,index){
+        networkCheck(() => {
+            Fecth.get(url,params,(res) => {
+                // 请求成功
+                if(res.code === 0){
+                    this._assignment(index,res.data);
+                    this.setState({isLoading: false});
+                }
+
+                //登录超时
+                if(res.code === 401){
+                    loginTimeout(_ => {navigate("Login")});
+                    this.setState({isLoading: false});
+                }
+
+                // 无数据
+                if(res.code === 404){
+                    this.setState({isLoading: false});
+                    // 待处理
+                }
+            },(err) => {
+                errorShow(err);
+            },headers);
+        },() => {navigate("NetWork")});
+    }
+    _assignment(index,data){
+        switch (index){
+            case 0: // 点击榜
+                let total_hits = this.data.total_hits.slice();
+                if(total_hits && total_hits.length === 0){
+                    total_hits = data;
+                    this.data.total_hits = total_hits;
+                }
+                break;
+
+            case 1: // 收藏榜
+                let total_likes = this.data.total_likes.slice();
+                if(total_likes && total_likes.length === 0){
+                    total_likes = data;
+                    this.data.total_likes = total_likes;
+                }
+                break;
+
+            case 2: // 新书榜
+                let total_present_amount = this.data.total_present_amount.slice();
+                if(total_present_amount && total_present_amount.length === 0){
+                    total_present_amount = data;
+                    this.data.total_present_amount = total_present_amount;
+                }
+                break;
+
+            case 3: // 完结榜
+                let finish = this.data.finish.slice();
+                if(finish && finish.length === 0){
+                    finish = data;
+                    this.data.finish = finish;
+                }
+                break;
+        }
+    }
+    _renderItem(item,index){
+        let obj = item,
             id = obj.id,
             hex_id = obj.hex_id,
             uri = RequestImage(id),
@@ -142,12 +167,24 @@ class RankingList extends Component{
 
         return (
             <TouchableOpacity
+                key={index}
                 style={styles.boxBody}
                 activeOpacity={0.75}
                 onPress={() => this._openDetails(hex_id,id)}
             >
-                <View style={[styles.bookBox,styles.bookBoxWH,{marginLeft:3}]}>
-                    <Image source={{uri: uri}} style={[styles.bookBoxWH,{borderRadius:2}]}/>
+                <View style={[styles.bookBox,styles.bookBoxWH]}>
+                    <ImageLoad
+                        source={{uri: uri}}
+                        style={[styles.bookBoxWH,{
+                            borderRadius: 2,
+                            borderWidth: 0.25,
+                            borderColor: '#ccc'}]
+                        }
+                        isShowActivity={false}
+                        customImagePlaceholderDefaultStyle={styles.bookBoxWH}
+                        borderRadius={2}
+                        placeholderSource={Icon.iconBookDefaultBig}
+                    />
                 </View>
                 <View style={styles.bookSection}>
                     <View style={styles.btHeader}>
@@ -174,40 +211,31 @@ class RankingList extends Component{
         );
     };
     _openDetails(hex_id,id){
-        let authorized_key = this.props.navigation.state.params.user.authorized_key;
+        let authorized_key = this.authorized_key;
+        const {navigate} = this.props.navigation;
 
         networkCheck(() => {
-            this.props.navigation.navigate("BookDetail",{
+            navigate("BookDetail",{
                 hex_id: hex_id,
                 id: id,
                 authorized_key: authorized_key,
             });
-        },() => {
-            this.props.navigation.navigate("NetWork");
-        });
+        },() => {navigate("NetWork")});
     }
 }
 
 // 定义一个尾部组件
 class RankingListFooter extends Component{
     static propTypes = {
-        switchStatus: PropTypes.bool
+        text: PropTypes.string
     };
     static defaultProps = {
-        switchStatus: false,
+        text: '没有更多了哦'
     };
     render(){
-        const { switchStatus } = this.props;
-
-        if(switchStatus === true){
-            return (
-                <FooterLoadActivityIndicator type={'Vertical'} />
-            );
-        }
-
         return (
             <View style={styles.promptBox}>
-                <Text style={styles.promptText}>没有更多了哦</Text>
+                <Text style={styles.promptText}>{this.props.text}</Text>
             </View>
         );
     }
@@ -281,11 +309,11 @@ const styles = StyleSheet.create({
         overflow:'visible',
     },
     bookBox: {
-        elevation: 3,
-        shadowColor: '#FBFBFB',
-        shadowOffset: {width: 4,height: 3},
-        shadowOpacity: 0.6,
-        borderRadius: 2,
+        // elevation: 3,
+        // shadowColor: '#FBFBFB',
+        // shadowOffset: {width: 4,height: 3},
+        // shadowOpacity: 0.6,
+        // borderRadius: 2,
         flexDirection: 'row'
     },
     bookBoxWH: {

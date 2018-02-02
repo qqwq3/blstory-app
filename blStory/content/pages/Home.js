@@ -12,7 +12,8 @@ import {
     Alert,
     NetInfo,
     Platform,
-    BackHandler
+    BackHandler,
+    ToastAndroid
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import DrawerJsx from './DrawerJsx';
@@ -21,7 +22,9 @@ import HomeHeader from './HomeHeader';
 import DrawerPageMenu from './DrawerPageMenu';
 import Fecth from '../common/Fecth';
 import { Api } from "../common/Api";
-import { errorShow,networkCheck,loginTimeout } from '../common/Util';
+import { errorShow,networkCheck,loginTimeout,exitApp } from '../common/Util';
+
+let lastBackPressed = Date.now();
 
 class Home extends Component{
     constructor(props){
@@ -31,14 +34,43 @@ class Home extends Component{
         };
         this.user = this.props.navigation.state.params.user;
     }
+    componentWillMount() {
+        //this._addEventListener();
+    }
     componentWillUnmount() {
         this.timer && clearTimeout(this.timer);
         this.balanceTimer && clearTimeout(this.balanceTimer);
+        //this._removeEventListener();
+    }
+    _addEventListener(){
+        if(Platform.OS === 'android'){
+            BackHandler.addEventListener('hardwareBackPress', this._handleBack.bind(this));
+        }
+        else{
+            // ios
+        }
+    }
+    _removeEventListener(){
+        if(Platform.OS === 'android'){
+            BackHandler.removeEventListener('hardwareBackPress', this._handleBack.bind(this));
+        }
+        else{
+            // ios
+        }
+    }
+    _handleBack(){
+        // 最近2秒内按过back键，可以退出应用。
+        if (lastBackPressed && lastBackPressed + 2000 >= Date.now()){
+            BackHandler.exitApp();
+        }
+
+        lastBackPressed = Date.now();
+        ToastAndroid.show('再按一次退出应用', ToastAndroid.SHORT);
+        return true;
     }
     render(){
         const {navigate} = this.props.navigation;
-        let user = this.user,
-            authorized_key = user.authorized_key;
+        let user = this.user;
 
         return (
             <View style={{flex:1}}>
@@ -67,8 +99,8 @@ class Home extends Component{
                 >
                     <HomeHeader
                         openDrawer={() => this._openControlPanel()}
-                        goMyCollect={() => this._goMyCollect(authorized_key)}
-                        goMyBookMark={() => this._goMyBookMark(authorized_key)}
+                        goMyCollect={() => this._goMyCollect(user)}
+                        goMyBookMark={() => this._goMyBookMark(user)}
                         goMyLibrary={() => this._goMyLibrary(user)}
                         navigation={this.props.navigation}
                         status={true}
@@ -100,7 +132,8 @@ class Home extends Component{
             if(res.code === 0){
                 this.setState({balance: res.data.balance});
             }
-            else{
+
+            if(res.code === 401){
                 loginTimeout(_ => {
                     this.props.navigation.navigate("Login");
                 });
@@ -110,9 +143,10 @@ class Home extends Component{
         },headers);
     }
     _logout(){
-        this.refs.toast.show('退出成功！',600);
+        this.refs.toast.show('退出成功',600);
         this.timer = setTimeout(() => {
-            this.props.navigation.navigate('Login');
+            //this.props.navigation.navigate('Login');
+            exitApp();
         },600);
     }
     _openControlPanel(){
@@ -129,19 +163,19 @@ class Home extends Component{
     _closeControlPanel(){
         this.refs['drawer'].closeControlPanel();
     }
-    _goMyCollect(authorized_key){
+    _goMyCollect(user){
         networkCheck(() => {
             this.props.navigation.navigate("MyCollect",{
-                authorized_key: authorized_key
+                user: user
             });
         },() => {
             this.props.navigation.navigate("NetWork");
         });
     }
-    _goMyBookMark(authorized_key){
+    _goMyBookMark(user){
         networkCheck(() => {
             this.props.navigation.navigate("MyBookMark",{
-                authorized_key: authorized_key
+                user: user
             });
         },() => {
             this.props.navigation.navigate("NetWork");

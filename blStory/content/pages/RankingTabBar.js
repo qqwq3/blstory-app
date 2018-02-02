@@ -12,8 +12,7 @@ import { Devices } from "../common/Api";
 
 class RankingTabBar extends React.Component{
     static propTypes = {
-        activeTab: PropTypes.number,
-        requestData: PropTypes.func
+        activeTab: PropTypes.number
     };
     static defaultProps = {
         activeTab: 0
@@ -43,9 +42,6 @@ class RankingTabBar extends React.Component{
         );
     }
     _tabSwifit(index){
-        const { tabStatusValue } = this.props;
-
-        this.props.requestData(tabStatusValue[index]);
         this.props.goToPage(index);
     }
 }

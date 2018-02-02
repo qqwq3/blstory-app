@@ -61,6 +61,8 @@ class ReaderCatalogue extends React.Component{
                     tabBarActiveTextColor={'#f3916b'}
                     tabBarBackgroundColor={'#ffffff'}
                     locked={false}
+                    scrollWithoutAnimation={false}
+                    prerenderingSiblingsNumber={1}
                 >
                     <View style={styles.rcBody} tabLabel={'目录'}>
                         <View style={styles.rcBodyHeader}>
@@ -126,6 +128,9 @@ class ReaderCatalogue extends React.Component{
                             closeChapterSelect={() => this._closeChapterSelect()}
                             changePage={(page) => this._changePage(page)}
                             page={this.state.page}
+                            transparent={true}
+                            animationType={'fade'}
+                            modalVisible={this.state.pop}
                         />
                     ) : null
                 }
@@ -152,7 +157,7 @@ class ReaderCatalogue extends React.Component{
         if(this.cachedResults.items.length === this.cachedResults.total && this.cachedResults.total !== 0){
             return (
                 <View style={{height:40,justifyContent:'center',alignItems:'center'}}>
-                    <Text style={{fontSize: 14,color: '#999999'}}>没有更多了哦</Text>
+                    <Text style={{fontSize: 14,color: '#999999'}}>没有更多书签了哦</Text>
                 </View>
             );
         }
@@ -193,7 +198,8 @@ class ReaderCatalogue extends React.Component{
                         isLoadMore: false,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         bookMarkDataStatus: true,
                         isLoadMore: false,
@@ -201,6 +207,13 @@ class ReaderCatalogue extends React.Component{
 
                     loginTimeout(_ => {
                         this.props.navigation.navigate("Login");
+                    });
+                }
+
+                if(res.code === 404){
+                    this.setState({
+                        bookMarkDataStatus: false,
+                        isLoadMore: false,
                     });
                 }
             },err => {
@@ -236,7 +249,8 @@ class ReaderCatalogue extends React.Component{
                         status: true,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         isLoading: false,
                         status: true,
@@ -244,6 +258,13 @@ class ReaderCatalogue extends React.Component{
 
                     loginTimeout(_ => {
                         this.props.navigation.navigate("Login");
+                    });
+                }
+
+                if(res.code === 404){
+                    this.setState({
+                        isLoading: false,
+                        status: false,
                     });
                 }
             },err => {

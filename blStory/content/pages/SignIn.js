@@ -9,6 +9,7 @@ import {
     TouchableOpacity,
     TouchableWithoutFeedback,
     Image,
+    Modal
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import LinearGradient from 'react-native-linear-gradient';
@@ -38,8 +39,11 @@ class SignIn extends Component{
     _signInRules(){
         this.setState({popStatus: true});
     }
-    _closeSignInPop(){
+    _closeModal(){
         this.setState({popStatus: false});
+    }
+    _openModal(){
+        this.setState({popStatus: true});
     }
     _signInCheck(){
         let authorized_key = this.authorized_key;
@@ -61,7 +65,8 @@ class SignIn extends Component{
                         signInDays: res.data.cycle_days + 1,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         showLoading:false,
                     });
@@ -97,7 +102,8 @@ class SignIn extends Component{
                         isSignIn: true,
                     });
                 }
-                else{
+
+                if(res.code === 401){
                     this.setState({
                         isSignIn: true,
                     });
@@ -152,7 +158,6 @@ class SignIn extends Component{
                         </View>
                     </View>
                 </LinearGradient>
-
                 <View style={{height:210,justifyContent:'center',alignItems:'center'}}>
                     <View style={styles.signInQd}>
                         <View style={styles.signInCircleCollection}>
@@ -178,11 +183,9 @@ class SignIn extends Component{
                             }
                         </View>
                     </View>
-
                     <View style={{alignItems:'center',marginTop:15,}}>
                         <Text style={{fontSize:15,color:'#f3916b'}}>已连续签到 <Text style={{fontSize:24,fontWeight:'bold'}}>{this.state.signInDays}</Text> 天</Text>
                     </View>
-
                     <View style={{alignItems:'center'}}>
                         {
                             this.state.isSignIn ? (
@@ -197,9 +200,13 @@ class SignIn extends Component{
                         }
                     </View>
                 </View>
-                {
-                    this.state.popStatus ? <SignInPop closeSignInPop={() => this._closeSignInPop()}/> : null
-                }
+                <SignInPop
+                    closeModal={this._closeModal.bind(this)}
+                    openModal={this._openModal.bind(this)}
+                    modalVisible={this.state.popStatus}
+                    transparent={true}
+                    animationType={'fade'}
+                />
                 <Toast
                     ref="toast"
                     position={'center'}
@@ -209,7 +216,7 @@ class SignIn extends Component{
                     style={{backgroundColor:'#000000'}}
                     textStyle={{fontSize:14,color:'#fff'}}
                 />
-                <Loading show={this.state.showLoading}/>
+                <Loading opacity={0.60} show={this.state.showLoading}/>
             </View>
         );
     }
@@ -218,38 +225,53 @@ class SignIn extends Component{
 // 弹出层
 class SignInPop extends Component{
     static propTypes = {
-        closeSignInPop: PropTypes.func,
+        closeModal: PropTypes.func,
+        modalVisible: PropTypes.bool,
+        animationType: PropTypes.string,
+        transparent: PropTypes.bool,
+        openModal: PropTypes.func,
+    };
+    static defaultProps = {
+        animationType: 'slide'
     };
     render(){
         return (
-            <View style={styles.signInPop}>
-                <View style={styles.signInPopContent}>
-                    <TouchableOpacity
-                        onPress={() => this.props.closeSignInPop()}
-                        activeOpacity={0.75}
-                        style={styles.signInPopColse}
-                    >
-                        <Image source={Icon.iconRuleClose} style={{width:12,height:12}}/>
-                    </TouchableOpacity>
-                    <View style={{alignItems:'center'}}>
-                        <Text style={[{fontSize:20,fontWeight:'bold',color:'#4d4d4d'},styles.textShadow]}>签到规则</Text>
-                    </View>
-                    <View style={{padding:15, overflow:'hidden',marginTop:5}}>
-                        <Text includeFontPadding={false} style={{fontSize:14,color:'#4d4d4d',paddingLeft:5,lineHeight:20}}>
-                            {'        '}签到每次可以获取到金币的奖励，连续签到第<Text style={{color:'#ff5a5a'}}> 7 </Text>天可以获取大礼包奖励。
-                        </Text>
-                        <Text style={{fontSize:14,color:'#4d4d4d',marginTop:15,paddingLeft:5,lineHeight:20}}>
-                            {'        '}签到<Text style={{color:'#ff5a5a'}}> 7 </Text>天为一个循环，从第一次签到开始，连续签到第<Text style={{color:'#ff5a5a'}}> 7 </Text>天即可获取到大礼包。
-                        </Text>
-                        <Text includeFontPadding={false} style={{fontSize:14,color:'#4d4d4d',marginTop:15,paddingLeft:5,lineHeight:20}}>
-                            {'        '}中途漏签不累计，再次签到后重新开始累计连续签到天数。
-                        </Text>
-                        <Text includeFontPadding={false} style={{fontSize:14,color:'#4d4d4d',marginTop:15,paddingLeft:5,lineHeight:20}}>
-                            {'        '}签到每天一次，凌晨<Text style={{color:'#ff5a5a'}}> 00:00 </Text>后即可开始新一天的签到。
-                        </Text>
+            <Modal
+                visible={this.props.modalVisible}
+                animationType={this.props.animationType}
+                transparent={this.props.transparent}
+                onRequestClose={() => this.props.closeModal()}
+                onShow={() => this.props.openModal()}
+            >
+                <View style={styles.signInPop}>
+                    <View style={styles.signInPopContent}>
+                        <TouchableOpacity
+                            onPress={() => this.props.closeModal()}
+                            activeOpacity={0.75}
+                            style={styles.signInPopColse}
+                        >
+                            <Image source={Icon.iconRuleClose} style={{width:12,height:12}}/>
+                        </TouchableOpacity>
+                        <View style={{alignItems:'center'}}>
+                            <Text style={[{fontSize:20,fontWeight:'bold',color:'#4d4d4d'},styles.textShadow]}>签到规则</Text>
+                        </View>
+                        <View style={{padding:15, overflow:'hidden',marginTop:5}}>
+                            <Text includeFontPadding={false} style={{fontSize:14,color:'#4d4d4d',paddingLeft:5,lineHeight:20}}>
+                                {'        '}签到每次可以获取到金币的奖励，连续签到第<Text style={{color:'#ff5a5a'}}> 7 </Text>天可以获取大礼包奖励。
+                            </Text>
+                            <Text style={{fontSize:14,color:'#4d4d4d',marginTop:15,paddingLeft:5,lineHeight:20}}>
+                                {'        '}签到<Text style={{color:'#ff5a5a'}}> 7 </Text>天为一个循环，从第一次签到开始，连续签到第<Text style={{color:'#ff5a5a'}}> 7 </Text>天即可获取到大礼包。
+                            </Text>
+                            <Text includeFontPadding={false} style={{fontSize:14,color:'#4d4d4d',marginTop:15,paddingLeft:5,lineHeight:20}}>
+                                {'        '}中途漏签不累计，再次签到后重新开始累计连续签到天数。
+                            </Text>
+                            <Text includeFontPadding={false} style={{fontSize:14,color:'#4d4d4d',marginTop:15,paddingLeft:5,lineHeight:20}}>
+                                {'        '}签到每天一次，凌晨<Text style={{color:'#ff5a5a'}}> 00:00 </Text>后即可开始新一天的签到。
+                            </Text>
+                        </View>
                     </View>
                 </View>
-            </View>
+            </Modal>
         )
     }
 }
