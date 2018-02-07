@@ -11,9 +11,7 @@ import {
     TouchableHighlight,
     Alert,
     NetInfo,
-    Platform,
-    BackHandler,
-    ToastAndroid
+    Platform
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import DrawerJsx from './DrawerJsx';
@@ -24,8 +22,6 @@ import Fecth from '../common/Fecth';
 import { Api } from "../common/Api";
 import { errorShow,networkCheck,loginTimeout,exitApp } from '../common/Util';
 
-let lastBackPressed = Date.now();
-
 class Home extends Component{
     constructor(props){
         super(props);
@@ -34,39 +30,9 @@ class Home extends Component{
         };
         this.user = this.props.navigation.state.params.user;
     }
-    componentWillMount() {
-        //this._addEventListener();
-    }
     componentWillUnmount() {
         this.timer && clearTimeout(this.timer);
         this.balanceTimer && clearTimeout(this.balanceTimer);
-        //this._removeEventListener();
-    }
-    _addEventListener(){
-        if(Platform.OS === 'android'){
-            BackHandler.addEventListener('hardwareBackPress', this._handleBack.bind(this));
-        }
-        else{
-            // ios
-        }
-    }
-    _removeEventListener(){
-        if(Platform.OS === 'android'){
-            BackHandler.removeEventListener('hardwareBackPress', this._handleBack.bind(this));
-        }
-        else{
-            // ios
-        }
-    }
-    _handleBack(){
-        // 最近2秒内按过back键，可以退出应用。
-        if (lastBackPressed && lastBackPressed + 2000 >= Date.now()){
-            BackHandler.exitApp();
-        }
-
-        lastBackPressed = Date.now();
-        ToastAndroid.show('再按一次退出应用', ToastAndroid.SHORT);
-        return true;
     }
     render(){
         const {navigate} = this.props.navigation;

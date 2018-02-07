@@ -60,8 +60,8 @@
 		49D4D864A2F34FD2AB2AA4CE /* libRNDeviceInfo-tvOS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 10A27522024940CBB564D77F /* libRNDeviceInfo-tvOS.a */; };
 		452A30D64BFC44358A0BA8A1 /* libBVLinearGradient.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 6639DB8B2A154E6E9F8CE87F /* libBVLinearGradient.a */; };
 		D03757B089584CECBF2EC4FE /* libRNAppUpdate.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 00361251C1B44E74BA57A95C /* libRNAppUpdate.a */; };
-		AA94A82D0823487DBE78F51F /* libRNFS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = B3D5D5295B914A378D1875D1 /* libRNFS.a */; };
 		3187423ACF32490A8A3E0289 /* libRNFetchBlob.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 56EE600BEB6F45B482EA525F /* libRNFetchBlob.a */; };
+		E831A5CCE5AA4F1FACDD0E70 /* libRNFS.a in Frameworks */ = {isa = PBXBuildFile; fileRef = 64943501EBCF4C0BADAED8F9 /* libRNFS.a */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -319,10 +319,10 @@
 		6639DB8B2A154E6E9F8CE87F /* libBVLinearGradient.a */ = {isa = PBXFileReference; name = "libBVLinearGradient.a"; path = "libBVLinearGradient.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 		43206240E7DE442083CA2621 /* RNAppUpdate.xcodeproj */ = {isa = PBXFileReference; name = "RNAppUpdate.xcodeproj"; path = "../node_modules/react-native-appupdate/ios/RNAppUpdate.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		00361251C1B44E74BA57A95C /* libRNAppUpdate.a */ = {isa = PBXFileReference; name = "libRNAppUpdate.a"; path = "libRNAppUpdate.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
-		1CCC74752EBB4EAA86C61F0C /* RNFS.xcodeproj */ = {isa = PBXFileReference; name = "RNFS.xcodeproj"; path = "../node_modules/react-native-fs/RNFS.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
-		B3D5D5295B914A378D1875D1 /* libRNFS.a */ = {isa = PBXFileReference; name = "libRNFS.a"; path = "libRNFS.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 		4A9A3CC2F1CE4008AB0C5F39 /* RNFetchBlob.xcodeproj */ = {isa = PBXFileReference; name = "RNFetchBlob.xcodeproj"; path = "../node_modules/react-native-fetch-blob/ios/RNFetchBlob.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
 		56EE600BEB6F45B482EA525F /* libRNFetchBlob.a */ = {isa = PBXFileReference; name = "libRNFetchBlob.a"; path = "libRNFetchBlob.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
+		75C64C8AC9E7436FA6A4B73F /* RNFS.xcodeproj */ = {isa = PBXFileReference; name = "RNFS.xcodeproj"; path = "../node_modules/react-native-fs/RNFS.xcodeproj"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = wrapper.pb-project; explicitFileType = undefined; includeInIndex = 0; };
+		64943501EBCF4C0BADAED8F9 /* libRNFS.a */ = {isa = PBXFileReference; name = "libRNFS.a"; path = "libRNFS.a"; sourceTree = "<group>"; fileEncoding = undefined; lastKnownFileType = archive.ar; explicitFileType = undefined; includeInIndex = 0; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -364,8 +364,8 @@
 				49D4D864A2F34FD2AB2AA4CE /* libRNDeviceInfo-tvOS.a in Frameworks */,
 				452A30D64BFC44358A0BA8A1 /* libBVLinearGradient.a in Frameworks */,
 				D03757B089584CECBF2EC4FE /* libRNAppUpdate.a in Frameworks */,
-				AA94A82D0823487DBE78F51F /* libRNFS.a in Frameworks */,
 				3187423ACF32490A8A3E0289 /* libRNFetchBlob.a in Frameworks */,
+				E831A5CCE5AA4F1FACDD0E70 /* libRNFS.a in Frameworks */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -540,8 +540,8 @@
 				E1ACBD0F017D4007A430A75E /* RNDeviceInfo.xcodeproj */,
 				2403FF019C9A4A4AA38F3CA8 /* BVLinearGradient.xcodeproj */,
 				43206240E7DE442083CA2621 /* RNAppUpdate.xcodeproj */,
-				1CCC74752EBB4EAA86C61F0C /* RNFS.xcodeproj */,
 				4A9A3CC2F1CE4008AB0C5F39 /* RNFetchBlob.xcodeproj */,
+				75C64C8AC9E7436FA6A4B73F /* RNFS.xcodeproj */,
 			);
 			name = Libraries;
 			sourceTree = "<group>";
@@ -1130,7 +1130,6 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blStory.app/blStory";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1140,8 +1139,9 @@
 					"$(SRCROOT)\..\node_modules\react-native-device-info\RNDeviceInfo",
 					"$(SRCROOT)\..\node_modules\react-native-linear-gradient\BVLinearGradient",
 					"$(SRCROOT)\..\node_modules\react-native-appupdate\ios\RNAppUpdate",
-					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 					"$(SRCROOT)\..\node_modules\react-native-fetch-blob\ios/**",
+					"$(SRCROOT)\..\node_modules\rn-splash-screen\ios\RCTSplashScreen",
+					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 				);
 			};
 			name = Debug;
@@ -1162,7 +1162,6 @@
 				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/blStory.app/blStory";
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1172,8 +1171,9 @@
 					"$(SRCROOT)\..\node_modules\react-native-device-info\RNDeviceInfo",
 					"$(SRCROOT)\..\node_modules\react-native-linear-gradient\BVLinearGradient",
 					"$(SRCROOT)\..\node_modules\react-native-appupdate\ios\RNAppUpdate",
-					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 					"$(SRCROOT)\..\node_modules\react-native-fetch-blob\ios/**",
+					"$(SRCROOT)\..\node_modules\rn-splash-screen\ios\RCTSplashScreen",
+					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 				);
 			};
 			name = Release;
@@ -1201,8 +1201,9 @@
 					"$(SRCROOT)\..\node_modules\react-native-device-info\RNDeviceInfo",
 					"$(SRCROOT)\..\node_modules\react-native-linear-gradient\BVLinearGradient",
 					"$(SRCROOT)\..\node_modules\react-native-appupdate\ios\RNAppUpdate",
-					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 					"$(SRCROOT)\..\node_modules\react-native-fetch-blob\ios/**",
+					"$(SRCROOT)\..\node_modules\rn-splash-screen\ios\RCTSplashScreen",
+					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 				);
 			};
 			name = Debug;
@@ -1229,8 +1230,9 @@
 					"$(SRCROOT)\..\node_modules\react-native-device-info\RNDeviceInfo",
 					"$(SRCROOT)\..\node_modules\react-native-linear-gradient\BVLinearGradient",
 					"$(SRCROOT)\..\node_modules\react-native-appupdate\ios\RNAppUpdate",
-					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 					"$(SRCROOT)\..\node_modules\react-native-fetch-blob\ios/**",
+					"$(SRCROOT)\..\node_modules\rn-splash-screen\ios\RCTSplashScreen",
+					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 				);
 			};
 			name = Release;
@@ -1260,7 +1262,6 @@
 				TVOS_DEPLOYMENT_TARGET = 9.2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1270,8 +1271,9 @@
 					"$(SRCROOT)\..\node_modules\react-native-device-info\RNDeviceInfo",
 					"$(SRCROOT)\..\node_modules\react-native-linear-gradient\BVLinearGradient",
 					"$(SRCROOT)\..\node_modules\react-native-appupdate\ios\RNAppUpdate",
-					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 					"$(SRCROOT)\..\node_modules\react-native-fetch-blob\ios/**",
+					"$(SRCROOT)\..\node_modules\rn-splash-screen\ios\RCTSplashScreen",
+					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 				);
 			};
 			name = Debug;
@@ -1301,7 +1303,6 @@
 				TVOS_DEPLOYMENT_TARGET = 9.2;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 				HEADER_SEARCH_PATHS = (
 					"$(inherited)",
@@ -1311,8 +1312,9 @@
 					"$(SRCROOT)\..\node_modules\react-native-device-info\RNDeviceInfo",
 					"$(SRCROOT)\..\node_modules\react-native-linear-gradient\BVLinearGradient",
 					"$(SRCROOT)\..\node_modules\react-native-appupdate\ios\RNAppUpdate",
-					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 					"$(SRCROOT)\..\node_modules\react-native-fetch-blob\ios/**",
+					"$(SRCROOT)\..\node_modules\rn-splash-screen\ios\RCTSplashScreen",
+					"$(SRCROOT)\..\node_modules\react-native-fs/**",
 				);
 			};
 			name = Release;
@@ -1337,7 +1339,6 @@
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 			};
 			name = Debug;
@@ -1362,7 +1363,6 @@
 				TVOS_DEPLOYMENT_TARGET = 10.1;
 				LIBRARY_SEARCH_PATHS = (
 					"$(inherited)",
-					"\"$(SRCROOT)/$(TARGET_NAME)\"",
 				);
 			};
 			name = Release;

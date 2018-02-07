@@ -12,15 +12,20 @@ import {
     AlertIOS,
     NetInfo,
     Linking,
+    Animated,
+    Easing,
+    BackHandler,
+    ToastAndroid
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import CodePush from 'react-native-code-push';
-import Router from './content/pages/Router';
 import AppUpdate from 'react-native-appupdate';
 import * as DeviceInfo from 'react-native-device-info';
 import * as Progress from 'react-native-progress';
+import SplashScreen from 'react-native-smart-splash-screen';
 
-import { launchApp,makeUserAgent,getDevicesInfo } from './content/common/Util';
+import Router from './content/pages/Router';
+import { launchApp,makeUserAgent,getDevicesInfo,exitApp } from './content/common/Util';
 import { getUpdateInfo,getSessionID } from './content/common/Util';
 import { Devices,DEPLOYMENT_KEYS } from "./content/common/Api";
 
@@ -34,19 +39,62 @@ class App extends Component<{}>{
             status: null,
             remoteLaunchData: null,
             progress: 0,
-            checkStatus: false,
+            checkStatus: false
         };
+        this.lastBackPressed = Date.now();
     }
     componentWillMount(){
         // 页面加载的禁止重启，在加载完了可以允许重启
         CodePush.disallowRestart();
-        // 初始化
-        this.initialize();
+
+        this.timer = setTimeout(() => {
+            // 初始化
+            this.initialize();
+        },1500);
+
+        // 关闭启动屏幕
+        SplashScreen.close({
+            animationType: SplashScreen.animationType.scale,
+            duration: 800,
+            delay: 700,
+        });
+
+        this._addEventListener();
     }
     componentDidMount() {
         // 在加载完了可以允许重启
         CodePush.allowRestart();
     }
+    componentWillUnmount() {
+        this.timer && clearTimeout(this.timer);
+        this._removeEventListener();
+    }
+    _addEventListener(){
+        if(Platform.OS === 'android'){
+            BackHandler.addEventListener('hardwareBackPress', this._handleBack);
+        }
+        else{
+            // ios
+        }
+    }
+    _removeEventListener(){
+        if(Platform.OS === 'android'){
+            BackHandler.removeEventListener('hardwareBackPress', this._handleBack);
+        }
+        else{
+            // ios
+        }
+    }
+    _handleBack = () => {
+        // 最近2秒内按过back键，可以退出应用。
+        if (this.lastBackPressed && this.lastBackPressed + 2000 >= Date.now()){
+            return exitApp();
+        }
+
+        this.lastBackPressed = Date.now();
+        ToastAndroid.show('再按一次退出应用', ToastAndroid.SHORT);
+        return true;
+    };
     async initialize(){
         // 启动app调的方法
         let launch = await this._launch();
@@ -280,7 +328,7 @@ class App extends Component<{}>{
         this.setState({progress: progress});
     }
     render(){
-        const { checkStatus,progress } = this.state;
+        const { checkStatus,progress,screenShow,screenAnimated } = this.state;
 
         if(checkStatus === true){
             let _progress,_progress_show;
@@ -338,6 +386,18 @@ class App extends Component<{}>{
 }
 
 const styles = StyleSheet.create({
+    screenImage: {
+        flex: 1,
+        width: Devices.width,
+        height: Devices.height,
+        position: 'absolute',
+        zIndex: 1000,
+        left: 0,
+        top: 0,
+        right: 0,
+        bottom: 0,
+        //display:'none'
+    },
     xzBfb:{
         marginTop: 15,
     },

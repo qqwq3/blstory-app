@@ -11,8 +11,9 @@ import {
     ScrollView,
     Image,
     Alert,
-    Animated,
     TouchableHighlight,
+    Keyboard,
+    Animated
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import DrawerJsx from './DrawerJsx';
@@ -70,6 +71,8 @@ class Reader extends React.Component{
             book_id: '',
             chapter_id: '',
             result: {},
+
+            Animated: new Animated.Value(0)
         };
         this.readerBg = ['#f6f4f1','#090C13','#9bdbd3'];
         this.readerFontColor = ['#000000','#2a5a74','#000000'];
@@ -89,6 +92,13 @@ class Reader extends React.Component{
     componentWillMount() {
         this._readerStatusShowChapter();
         this._setRecords();
+    }
+    componentDidMount() {
+        this._keyboardHide = Keyboard.addListener('keyboardDidHide',this._keyboardDidHideHandler.bind(this));
+    }
+    componentWillUnmount() {
+        // 卸载键盘隐藏事件监听
+        this._keyboardHide !== null && this._keyboardHide.remove();
     }
     render(){
         let items = {
@@ -242,6 +252,9 @@ class Reader extends React.Component{
                 <Loading opacity={0.60} show={this.state.isLoading} />
             )
         );
+    }
+    _keyboardDidHideHandler(){
+        this._commetsControl();
     }
     _closeModal(){
         this.setState({barStatusC: false});

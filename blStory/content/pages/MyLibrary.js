@@ -14,7 +14,7 @@ import {
     RefreshControl,
     ListView,
     ActivityIndicator,
-    Keyboard,
+    Keyboard
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import ImageLoad from 'react-native-image-placeholder';
@@ -48,7 +48,7 @@ class MyLibrary extends Component{
             status: 1,
             name: null,
 
-            balance: 0,
+            balance: 0
         };
         this.ds = new ListView.DataSource({rowHasChanged:(r1,r2) => r1 !== r2});
         this.user = this.props.navigation.state.params.user;
@@ -73,7 +73,7 @@ class MyLibrary extends Component{
     }
     render(){
         const { navigate } = this.props.navigation;
-        const { isConnected } = this.state;
+        const { isConnected,returnTopStatus } = this.state;
 
         let user = this.user;
 
@@ -143,12 +143,11 @@ class MyLibrary extends Component{
                     />
                     <Loading opacity={0.6} show={this.state.isLoading}/>
                     {
-                        this.state.returnTopStatus ?
-                            <TouchableOpacity onPress={() => this._returnTop()} style={styles.zdBox}>
+                        returnTopStatus &&
+                            <TouchableOpacity onPress={() => this._returnTop()} style={[styles.zdBox]}>
                                 <Text style={styles.zdBoxFont}>返回</Text>
                                 <Text style={styles.zdBoxFont}>顶部</Text>
                             </TouchableOpacity>
-                            : null
                     }
                 </DrawerJsx>
             </View>
@@ -276,6 +275,7 @@ class MyLibrary extends Component{
     }
     _onScroll(e){
         let y = e.nativeEvent.contentOffset.y;
+
         y > 0 ? this.setState({returnTopStatus:true}) : this.setState({returnTopStatus:false});
     }
     _refresh(){
@@ -450,7 +450,7 @@ const styles = StyleSheet.create({
         bottom: 15,
         right: 15,
         justifyContent: 'center',
-        alignItems: 'center',
+        alignItems: 'center'
     },
     menuInnerBottomBorder: {
         borderBottomColor: '#E5E5E5',
@@ -469,7 +469,9 @@ const styles = StyleSheet.create({
     BookMarkImage: {
         width: 75,
         height: 95,
-        borderRadius: 2
+        borderRadius: 2,
+        borderWidth: 0.25,
+        borderColor: '#ccc'
     },
     BookMarkMassage: {
         flex: 1,

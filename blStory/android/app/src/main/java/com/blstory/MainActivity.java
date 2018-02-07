@@ -1,7 +1,14 @@
 package com.blstory;
 
 import com.facebook.react.ReactActivity;
+
+import android.os.Bundle;
+import android.content.Intent; // <--- import
+import android.content.res.Configuration; // <--- import
 import com.umeng.analytics.MobclickAgent;
+import com.umeng.analytics.MobclickAgent.EScenarioType;
+
+import com.reactnativecomponent.splashscreen.RCTSplashScreen;    //import RCTSplashScreen
 
 public class MainActivity extends ReactActivity {
 
@@ -12,6 +19,14 @@ public class MainActivity extends ReactActivity {
     @Override
     protected String getMainComponentName() {
         return "blStory";
+    }
+
+    @Override
+    public void onConfigurationChanged(Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        Intent intent = new Intent("onConfigurationChanged");
+        intent.putExtra("newConfig", newConfig);
+        this.sendBroadcast(intent);
     }
 
     @Override
@@ -26,6 +41,15 @@ public class MainActivity extends ReactActivity {
         MobclickAgent.onPause(this);
     }
 
+    @Override
+    protected void onCreate(Bundle savedInstanceState) {
 
+        RCTSplashScreen.openSplashScreen(this);   //open splashscreen
+        //RCTSplashScreen.openSplashScreen(this, true, ImageView.ScaleType.FIT_XY);   //open splashscreen fullscreen
+
+        super.onCreate(savedInstanceState);
+        MobclickAgent.setSessionContinueMillis(1000);
+        MobclickAgent.setScenarioType(this, EScenarioType.E_DUM_NORMAL);
+    }
 }
 

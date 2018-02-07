@@ -5,7 +5,6 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 
-
 import com.facebook.react.bridge.Callback;
 import com.facebook.react.bridge.ReactApplicationContext;
 import com.facebook.react.bridge.ReactContextBaseJavaModule;
@@ -88,7 +87,7 @@ public class AnalyticsModule extends ReactContextBaseJavaModule {
     }
     @ReactMethod
     public void onEventWithMapAndCount(String eventId,ReadableMap map,int value) {
-        Map<String, String> rMap = new HashMap();
+        Map<String, String> rMap = new HashMap<String, String>();
         ReadableMapKeySetIterator iterator = map.keySetIterator();
         while (iterator.hasNextKey()) {
             String key = iterator.nextKey();
@@ -114,7 +113,7 @@ public class AnalyticsModule extends ReactContextBaseJavaModule {
     }
     @ReactMethod
     public void trackWithMap(String eventID,ReadableMap property) {
-        Map<String, Object> map = new HashMap();
+        Map<String, Object> map = new HashMap<String, Object>();
         ReadableMapKeySetIterator iterator = property.keySetIterator();
         while (iterator.hasNextKey()) {
             String key = iterator.nextKey();
@@ -170,7 +169,7 @@ public class AnalyticsModule extends ReactContextBaseJavaModule {
     }
     @ReactMethod
     public void setFirstLaunchEvent(ReadableArray array) {
-        List<String> list = new ArrayList();
+        List<String> list = new ArrayList<String>();
         for (int i = 0; i < array.size(); i++) {
             if (ReadableType.Array == array.getType(i)) {
                 list.add(array.getArray(i).toString());

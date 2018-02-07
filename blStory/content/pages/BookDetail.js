@@ -438,8 +438,6 @@ class BookDetail extends Component{
         let MaxHeight = e.nativeEvent.layout.height;
         const { MinHeight } = this.state;
 
-        console.log('MaxHeight',MaxHeight);
-
         this.setState({MaxHeight: MaxHeight});
         Number(MaxHeight) >= MinHeight && this.setState({isShow: true});
     }
