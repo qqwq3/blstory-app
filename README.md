@@ -23,6 +23,7 @@
 16. 最好用的banner手势滑动 [react-native-swiper](https://github.com/leecade/react-native-swiper)
 17. 友盟 国内专业的移动应用统计平台 [www.umeng.com](http://www.umeng.com/)
 18. 图片加载占位图处理 [react-native-image-placeholder](https://www.npmjs.com/package/react-native-image-placeholder)
+19. 启动页 [react-native-smart-splash-screen](https://github.com/react-native-component/react-native-smart-splash-screen)
 
 #### 提示
 
