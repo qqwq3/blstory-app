@@ -22,6 +22,7 @@
 15. RN路由react-navigation [react-navigation](https://github.com/react-navigation/react-navigation)
 16. 最好用的banner手势滑动 [react-native-swiper](https://github.com/leecade/react-native-swiper)
 17. 友盟 国内专业的移动应用统计平台 [www.umeng.com](http://www.umeng.com/)
+18. 图片加载占位图处理 [react-native-image-placeholder](https://www.npmjs.com/package/react-native-image-placeholder)
 
 #### 提示
 
