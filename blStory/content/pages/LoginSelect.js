@@ -84,7 +84,7 @@ class LoginSelect extends Component{
         let { user } = this.state;
 
         if(scope === null || state === null){
-            Alert.alert('系统提示','亲，请检查您网络哦！',[
+            Alert.alert('系统提示','亲，你的网络貌似不太好哦，请稍后再试吧！',[
                 {
                     text: '关闭',
                 }

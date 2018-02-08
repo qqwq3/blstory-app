@@ -71,6 +71,13 @@ class DrawerPageMenu extends React.Component{
                     renderItem={this.renderItem}
                     numColumns={1}
                 />
+                <TouchableOpacity
+                    activeOpacity={1}
+                    style={styles.closeDrawer}
+                    onPress={this._closeDrawer.bind(this)}
+                >
+                    <Text style={styles.closeDrawerText}>关闭滑盖</Text>
+                </TouchableOpacity>
             </View>
         );
     }
@@ -156,7 +163,7 @@ class DrawerPageMenu extends React.Component{
                 headers = {'SESSION-ID': launchConfig.sessionID};
             const { navigate } = this.props.navigation;
 
-            this.props.closeDrawer();
+            // this.props.closeDrawer();
             networkCheck(() => {
                 Fecth.post(url,params,headers,res => {
                     if(res.code === 0){
@@ -173,11 +180,27 @@ class DrawerPageMenu extends React.Component{
             });
         }
     }
+    _closeDrawer(){
+        const { closeDrawer } = this.props;
+
+        return closeDrawer();
+    }
 }
 
 export default DrawerPageMenu;
 
 const styles = StyleSheet.create({
+    closeDrawer:{
+        justifyContent:'flex-end',
+        alignItems: 'center',
+        overflow:'hidden',
+        flex: 1,
+        paddingBottom:20,
+    },
+    closeDrawerText:{
+        color: '#fff',
+        fontSize: 15,
+    },
     shareBox:{
         justifyContent: 'center',
         alignItems: 'center',

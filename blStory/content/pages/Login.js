@@ -22,6 +22,7 @@ import { Devices,Api } from "../common/Api";
 import Fecth from '../common/Fecth';
 import LoginSelect from './LoginSelect';
 import { errorShow,loginTimeout,networkCheck } from '../common/Util';
+import Icon from '../common/Icon';
 
 class Login extends Component{
     constructor(props){
@@ -48,7 +49,12 @@ class Login extends Component{
             <View style={styles.content}>
                 <View style={{flex:1}}>
                     <View style={styles.loginTitle}>
-                        <Text style={[styles.comColor,styles.loginTitleText]}>白鹿</Text>
+                        {/*<Text style={[styles.comColor,styles.loginTitleText]}>白鹿</Text>*/}
+                        <Image
+                            source={Icon.iconLauncher}
+                            style={{width: 120,height: 120}}
+                            resizeMode={'contain'}
+                        />
                     </View>
                     <View style={styles.loginMethod}>
                         <View style={styles.loginMethodPropmpt}>

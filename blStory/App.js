@@ -50,13 +50,13 @@ class App extends Component<{}>{
         this.timer = setTimeout(() => {
             // 初始化
             this.initialize();
-        },1500);
+        },1300);
 
         // 关闭启动屏幕
         SplashScreen.close({
             animationType: SplashScreen.animationType.scale,
             duration: 800,
-            delay: 700,
+            delay: 500,
         });
 
         this._addEventListener();

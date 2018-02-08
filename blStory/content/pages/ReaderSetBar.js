@@ -274,7 +274,7 @@ class CommentSetBar extends React.Component{
                                 underlineColorAndroid={'transparent'}
                                 onChangeText={(e) => this.props.changeText(e)}
                                 ref={ref => this._textInput = ref}
-                                keyboardType={'ascii-capable'}
+                                keyboardType={'default'}
                             />
                         </View>
                     </View>
@@ -283,10 +283,10 @@ class CommentSetBar extends React.Component{
         );
     }
     _textInputBlur(){
-        return this._textInput.blur();
+        return this._textInput && this._textInput.blur();
     }
     _textInputClear(){
-        return this._textInput.clear();
+        return this._textInput && this._textInput.clear();
     }
 }
 
@@ -338,6 +338,7 @@ const styles = StyleSheet.create({
         left: 0,
         bottom: 0,
         width: Devices.width,
+        elevation: 8
     },
     plateType: {
         alignItems:'center',

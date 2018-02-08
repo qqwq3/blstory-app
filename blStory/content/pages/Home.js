@@ -11,7 +11,8 @@ import {
     TouchableHighlight,
     Alert,
     NetInfo,
-    Platform
+    Platform,
+    Easing
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import DrawerJsx from './DrawerJsx';
@@ -109,11 +110,26 @@ class Home extends Component{
         },headers);
     }
     _logout(){
-        this.refs.toast.show('退出成功',600);
-        this.timer = setTimeout(() => {
-            //this.props.navigation.navigate('Login');
-            exitApp();
-        },600);
+        // this.refs.toast.show('退出成功',600);
+        // this.timer = setTimeout(() => {
+        //     //this.props.navigation.navigate('Login');
+        //     exitApp();
+        // },600);
+
+        Alert.alert('系统提示',"亲，你确定要退出应用吗？",[
+            {
+                text: '继续阅读',onPress: () =>
+                {
+                    return this._closeControlPanel();
+                }
+            },
+            {
+                text: '立即退出',onPress: () =>
+                {
+                    return exitApp();
+                }
+            }
+        ]);
     }
     _openControlPanel(){
         networkCheck(() => {
@@ -165,7 +181,7 @@ const styles = StyleSheet.create({
     drawer: {
         shadowColor: 'rgba(0,0,0,0.5)',
         shadowOpacity: 0.8,
-        shadowRadius: 3,
+        shadowRadius: 3
     },
 });
 

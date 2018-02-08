@@ -40,7 +40,8 @@ const Icon = {
     iconInviteCode: require("../images/icon_invite_code.png"),
     iconBookDefaultBig: require('../images/book_defaut_big.png'),
     iconBookDefaultSmall: require('../images/book_defaut_small.png'),
-    iconCommentAvtarDefault: require('../images/comment_avtar_default.png')
+    iconCommentAvtarDefault: require('../images/comment_avtar_default.png'),
+    iconLauncher: require('../images/ic_launcher.png'),
 };
 
 export default Icon;

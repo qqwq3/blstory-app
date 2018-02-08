@@ -14,7 +14,8 @@ import {
     RefreshControl,
     ListView,
     ActivityIndicator,
-    Keyboard
+    Keyboard,
+    Alert
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import ImageLoad from 'react-native-image-placeholder';
@@ -161,6 +162,7 @@ class MyLibrary extends Component{
         let authorized_key = this.user.authorized_key;
         let params = '';
         let headers = {'Authorized-Key': authorized_key,"SESSION-ID": launchConfig.sessionID};
+        const { navigate } = this.props.navigation;
 
         Fecth.get(url,params,res => {
             if(res.code === 0){
@@ -168,9 +170,7 @@ class MyLibrary extends Component{
             }
 
             if(res.code === 401){
-                loginTimeout(_ => {
-                    this.props.navigation.navigate("Login");
-                });
+                loginTimeout(_ => { navigate("Login") });
             }
         },err => {
             errorShow(err);
@@ -238,6 +238,8 @@ class MyLibrary extends Component{
         this.refs['drawer'].closeControlPanel();
     }
     _openControlPanel(){
+        const { navigate } = this.props.navigation;
+
         networkCheck(() => {
             this.balanceTimer = setTimeout(() => {
                 this.refs['drawer'].openControlPanel();
@@ -245,7 +247,7 @@ class MyLibrary extends Component{
 
             this._requestUserBalance();
         },() => {
-            this.props.navigation.navigate("NetWork");
+            navigate("NetWork");
         });
     }
     _goMyCollect(user){
@@ -267,11 +269,26 @@ class MyLibrary extends Component{
         });
     }
     _logout(){
-        this.refs.toast.show('退出成功',600);
-        this.timer = setTimeout(() => {
-            //this.props.navigation.navigate('Login');
-            exitApp();
-        },600);
+        // this.refs.toast.show('退出成功',600);
+        // this.timer = setTimeout(() => {
+        //     //this.props.navigation.navigate('Login');
+        //     exitApp();
+        // },600);
+
+        Alert.alert('系统提示',"亲，你确定要退出应用吗？",[
+            {
+                text: '继续阅读',onPress: () =>
+                {
+                    return this._closeControlPanel();
+                }
+            },
+            {
+                text: '立即退出',onPress: () =>
+                {
+                    return exitApp();
+                }
+            }
+        ]);
     }
     _onScroll(e){
         let y = e.nativeEvent.contentOffset.y;

@@ -13,7 +13,8 @@ import {
     Alert,
     TouchableHighlight,
     Keyboard,
-    Animated
+    Animated,
+    Modal
 } from 'react-native';
 import Toast from 'react-native-easy-toast';
 import DrawerJsx from './DrawerJsx';
@@ -185,7 +186,7 @@ class Reader extends React.Component{
                         style={{backgroundColor:this.state.barBackgroundColor}}
                         textStyle={{fontSize:14,color:this.state.comColor}}
                     />
-                    <Loading opacity={0} show={this.state.isLoading} />
+                    {/*<Loading opacity={0} show={this.state.isLoading} />*/}
                     {
                         this.state.barStatusA === true && (
                             <TouchableOpacity
@@ -223,7 +224,7 @@ class Reader extends React.Component{
                         closeComments={() => this._closeComments()}
                         focuStatus={this.state.barStatusC}
                         changeText={(e) => this._changeText(e)}
-                        opacity={0.5}
+                        opacity={0}
                         ref={'textInput'}
                         visible={this.state.barStatusC}
                         closeModal={this._closeModal.bind(this)}
@@ -231,25 +232,34 @@ class Reader extends React.Component{
                         animationType={'slide'}
                     />
                     {
-                        this.state.readerPrompt === true && (
-                            <TouchableOpacity
-                                activeOpacity={1}
-                                style={styles.readerPrompt}
-                                onPress={() => this._closeFirstReaderPrompt()}
+                        //this.state.readerPrompt === true && (
+                            <Modal
+                                visible={this.state.readerPrompt}
+                                animationType={'fade'}
+                                transparent={true}
+                                onRequestClose={() => this._closeFirstReaderPrompt()}
                             >
-                                <View style={styles.readerSlidePagePrompt}>
-                                    <Image source={Icon.iconGestureNextPage} resizeMode={'contain'}/>
-                                    <Image source={Icon.iconGesturePreviewPage} resizeMode={'contain'}/>
-                                </View>
-                                <View style={styles.readerClickPrompt}>
-                                    <Image source={Icon.iconGestureMenu} resizeMode={'contain'}/>
-                                </View>
-                            </TouchableOpacity>
-                        )
+                                <TouchableOpacity
+                                    activeOpacity={1}
+                                    style={styles.readerPrompt}
+                                    onPress={() => this._closeFirstReaderPrompt()}
+                                >
+                                    <View style={styles.readerSlidePagePrompt}>
+                                        <Image source={Icon.iconGestureNextPage} resizeMode={'contain'}/>
+                                        <Image source={Icon.iconGesturePreviewPage} resizeMode={'contain'}/>
+                                    </View>
+                                    <View style={styles.readerClickPrompt}>
+                                        <Image source={Icon.iconGestureMenu} resizeMode={'contain'}/>
+                                    </View>
+                                </TouchableOpacity>
+                            </Modal>
+                        //)
                     }
                 </DrawerJsx>
             ) : (
-                <Loading opacity={0.60} show={this.state.isLoading} />
+                <View style={{flex:1,justifyContent:'center',alignItems:'center'}}>
+                    <Text style={{fontSize:24,color:'#ccc',fontWeight:'bold'}}>正在准备阅读材料中...</Text>
+                </View>
             )
         );
     }
@@ -272,7 +282,7 @@ class Reader extends React.Component{
         // 第一次阅读提示
         StorageUtil.get('readerPrompt',res => {
             this.setState({
-                readerPrompt: res.readerPrompt,
+                readerPrompt: res.readerPrompt
             });
         });
 
@@ -648,7 +658,6 @@ class Reader extends React.Component{
         });
     }
     _readerModelSwitch(){
-
         // 阅读模式切换
         this.setState({
             backgroundColor: this.state.backgroundColor === '#090C13' ? '#f6f4f1' : '#090C13',
@@ -730,8 +739,8 @@ class Reader extends React.Component{
         this._commetsControl();
     }
     _commetsControl(){
-        this.refs['textInput']._textInputBlur();
-        this.refs['textInput']._textInputClear();
+        this.refs['textInput'] && this.refs['textInput']._textInputBlur();
+        this.refs['textInput'] && this.refs['textInput']._textInputClear();
         this.setState({barStatusC: false});
     }
 }
@@ -770,6 +779,7 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         justifyContent: 'center',
         alignItems: 'center',
+        flex: 1
     },
     setBarBox: {
         position: 'absolute',
@@ -806,9 +816,9 @@ const styles = StyleSheet.create({
         overflow: 'hidden',
         alignItems: 'center',
         justifyContent: 'flex-start',
-        //borderBottomColor:'#e5e5e5',
-        //borderBottomWidth:1 / Devices.piexl,
-        //borderStyle: 'solid',
+        borderBottomColor:'#e5e5e5',
+        borderBottomWidth:1 / Devices.piexl,
+        borderStyle: 'solid',
     },
     readerTitle: {
         height: 34,
@@ -827,9 +837,9 @@ const styles = StyleSheet.create({
         paddingRight: 15,
         justifyContent: 'flex-end',
         alignItems: 'center',
-        //borderTopColor:'#e5e5e5',
-        //borderTopWidth:1 / Devices.piexl,
-        //borderStyle: 'solid',
+        borderTopColor:'#e5e5e5',
+        borderTopWidth:1 / Devices.piexl,
+        borderStyle: 'solid'
     },
 });
 
